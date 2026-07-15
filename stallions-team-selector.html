@@ -1,0 +1,1814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stallions Cricket Club — Team Selection &amp; Match Strategy</title>
+<style>
+/* ============================================================
+   STALLIONS CRICKET CLUB — Team Selector
+   Single-file app. All styling uses CSS variables below.
+   ============================================================ */
+:root{
+  --bg:#0d1321;            /* deep navy background */
+  --bg2:#151d30;           /* panel background */
+  --card:#1b2540;          /* card background */
+  --card2:#222e4f;         /* raised card */
+  --line:#2e3b5e;          /* borders */
+  --gold:#e3b23c;          /* stallion gold accent */
+  --gold-dk:#b8892a;
+  --green:#2f9e5f;         /* pitch green */
+  --red:#e05252;
+  --amber:#e8a13c;
+  --text:#eef2fa;
+  --muted:#9aa7c7;
+  --shadow:0 6px 18px rgba(0,0,0,.35);
+  --rad:14px;
+  --tap:44px;              /* minimum touch target */
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--text);line-height:1.5;font-size:16px;
+  min-height:100vh;
+}
+/* ---------- Header ---------- */
+.app-header{
+  background:linear-gradient(135deg,#101a30 0%,#1a2440 55%,#233054 100%);
+  border-bottom:3px solid var(--gold);
+  padding:18px 16px 14px;box-shadow:var(--shadow);
+}
+.header-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.logo-wrap{position:relative;flex:0 0 auto}
+.logo-img{width:84px;height:84px;border-radius:50%;object-fit:cover;background:#fff;
+  border:3px solid var(--gold);box-shadow:0 0 0 4px rgba(227,178,60,.15)}
+.title-block h1{font-size:clamp(1.35rem,4.5vw,2.1rem);letter-spacing:.04em;text-transform:uppercase;
+  background:linear-gradient(90deg,var(--gold),#f5d98a);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.title-block .subtitle{color:var(--muted);font-size:.95rem;letter-spacing:.12em;text-transform:uppercase}
+.logo-actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+/* ---------- Tabs ---------- */
+.tabs{position:sticky;top:0;z-index:50;background:var(--bg2);border-bottom:1px solid var(--line);
+  overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch;box-shadow:0 4px 10px rgba(0,0,0,.25)}
+.tabs-inner{max-width:1200px;margin:0 auto;display:flex}
+.tab-btn{
+  flex:0 0 auto;background:none;border:none;color:var(--muted);cursor:pointer;
+  padding:14px 16px;font-size:.92rem;font-weight:600;min-height:var(--tap);
+  border-bottom:3px solid transparent;letter-spacing:.02em;
+}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{color:var(--gold);border-bottom-color:var(--gold)}
+/* ---------- Layout ---------- */
+main{max-width:1200px;margin:0 auto;padding:18px 14px 90px}
+.panel{display:none;animation:fadeIn .25s ease}
+.panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.panel h2{font-size:1.35rem;margin-bottom:4px;color:var(--gold)}
+.panel .lead{color:var(--muted);margin-bottom:16px;font-size:.95rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);padding:16px;box-shadow:var(--shadow)}
+.grid{display:grid;gap:14px}
+.grid.cols-2{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.grid.cols-3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+/* ---------- Forms ---------- */
+label.fld{display:block;font-size:.82rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+input[type=text],input[type=date],input[type=number],select,textarea{
+  width:100%;background:var(--bg2);color:var(--text);border:1px solid var(--line);
+  border-radius:10px;padding:12px;font-size:1rem;min-height:var(--tap);
+}
+textarea{min-height:90px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px}
+.fld-group{margin-bottom:12px}
+.help{font-size:.8rem;color:var(--muted);margin-top:4px}
+/* ---------- Buttons ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  background:var(--card2);color:var(--text);border:1px solid var(--line);
+  border-radius:10px;padding:12px 18px;font-size:.95rem;font-weight:700;cursor:pointer;
+  min-height:var(--tap);transition:transform .08s ease,background .15s ease;
+}
+.btn:hover{background:#2b3a63}
+.btn:active{transform:scale(.97)}
+.btn-gold{background:var(--gold);color:#20180a;border-color:var(--gold-dk)}
+.btn-gold:hover{background:#f0c352}
+.btn-green{background:var(--green);border-color:#207347;color:#fff}
+.btn-green:hover{background:#37b46e}
+.btn-red{background:transparent;border-color:var(--red);color:var(--red)}
+.btn-red:hover{background:rgba(224,82,82,.12)}
+.btn-sm{padding:8px 12px;font-size:.85rem;min-height:38px}
+.btn-block{width:100%}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+/* ---------- Player cards ---------- */
+.player-grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+.pcard{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);padding:14px;position:relative}
+.pcard.unavailable{opacity:.55}
+.pcard .pname{font-size:1.08rem;font-weight:800;margin-bottom:2px;word-break:break-word}
+.pcard .badges{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0 10px}
+.badge{font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:20px;background:var(--bg2);
+  color:var(--muted);border:1px solid var(--line);letter-spacing:.03em;text-transform:uppercase}
+.badge.wk{background:rgba(227,178,60,.18);color:var(--gold);border-color:var(--gold-dk)}
+.badge.cap{background:rgba(47,158,95,.18);color:#5fd08f;border-color:var(--green)}
+.badge.vc{background:rgba(90,140,230,.18);color:#8fb3f5;border-color:#3f5fa0}
+.badge.xi{background:var(--gold);color:#20180a;border-color:var(--gold-dk)}
+.rating-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.rating-cell{background:var(--bg2);border-radius:8px;text-align:center;padding:6px 2px}
+.rating-cell .rc-l{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.rating-cell .rc-v{font-size:1.15rem;font-weight:800}
+.ovr-chip{position:absolute;top:12px;right:12px;background:linear-gradient(135deg,var(--gold),var(--gold-dk));
+  color:#20180a;font-weight:800;border-radius:10px;padding:6px 10px;font-size:.95rem;text-align:center;line-height:1.1}
+.ovr-chip small{display:block;font-size:.55rem;font-weight:700;letter-spacing:.05em}
+.pcard .pmeta{font-size:.83rem;color:var(--muted);margin-bottom:10px}
+.pcard .pactions{display:flex;gap:8px;flex-wrap:wrap}
+.pnotes{font-size:.82rem;color:#c8d3ec;background:var(--bg2);border-radius:8px;padding:7px 9px;margin-bottom:10px;font-style:italic}
+/* ---------- Checkbox pills ---------- */
+.chk-pill{display:inline-flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--line);
+  border-radius:10px;padding:9px 12px;cursor:pointer;font-size:.88rem;font-weight:600;min-height:40px;user-select:none}
+.chk-pill input{width:20px;height:20px;accent-color:var(--gold);cursor:pointer}
+.chk-row{display:flex;flex-wrap:wrap;gap:8px}
+/* ---------- Sliders in modal ---------- */
+.slider-row{display:flex;align-items:center;gap:10px;margin-bottom:2px}
+.slider-row input[type=range]{flex:1;height:34px;accent-color:var(--gold);min-height:34px}
+.step-btn{width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--card2);
+  color:var(--text);font-size:1.3rem;font-weight:800;cursor:pointer;flex:0 0 auto}
+.step-btn:active{transform:scale(.94)}
+.slider-val{width:44px;text-align:center;font-size:1.25rem;font-weight:800;color:var(--gold);flex:0 0 auto}
+/* ---------- Modal ---------- */
+.modal-back{display:none;position:fixed;inset:0;background:rgba(5,8,16,.75);z-index:100;overflow-y:auto;padding:16px}
+.modal-back.open{display:flex;align-items:flex-start;justify-content:center}
+.modal{background:var(--bg2);border:1px solid var(--line);border-radius:16px;max-width:560px;width:100%;
+  padding:20px;margin:auto;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.modal h3{color:var(--gold);margin-bottom:14px;font-size:1.2rem}
+.modal .m-actions{display:flex;gap:10px;margin-top:16px}
+.modal .m-actions .btn{flex:1}
+/* ---------- Warnings ---------- */
+.warn-box{border-radius:12px;padding:12px 14px;margin:10px 0;font-size:.92rem}
+.warn-box ul{margin-left:18px}
+.warn-box li{margin:3px 0}
+.warn-amber{background:rgba(232,161,60,.12);border:1px solid var(--amber);color:#f2c98a}
+.warn-red{background:rgba(224,82,82,.12);border:1px solid var(--red);color:#f0a0a0}
+.warn-green{background:rgba(47,158,95,.12);border:1px solid var(--green);color:#8fdcb0}
+/* ---------- Strategy buttons ---------- */
+.strat-grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));margin-bottom:16px}
+.strat-btn{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:22px 16px;cursor:pointer;
+  text-align:center;transition:border-color .15s,transform .1s;color:var(--text)}
+.strat-btn:active{transform:scale(.98)}
+.strat-btn .s-icon{font-size:2rem;display:block;margin-bottom:6px}
+.strat-btn .s-name{font-size:1.15rem;font-weight:800;letter-spacing:.03em}
+.strat-btn .s-desc{font-size:.83rem;color:var(--muted);margin-top:6px}
+.strat-btn.active{border-color:var(--gold);background:linear-gradient(160deg,var(--card),#2a2410);box-shadow:0 0 0 3px rgba(227,178,60,.2)}
+/* ---------- Tables ---------- */
+.tbl-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--line)}
+table.tbl{width:100%;border-collapse:collapse;font-size:.9rem;min-width:640px}
+table.tbl th{background:var(--bg2);color:var(--gold);text-align:left;padding:10px 12px;font-size:.78rem;
+  text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+table.tbl td{padding:10px 12px;border-top:1px solid var(--line);vertical-align:top}
+table.tbl tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+.pos-num{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;
+  background:var(--gold);color:#20180a;font-weight:800}
+.reason{font-size:.82rem;color:var(--muted);font-style:italic}
+.mini-btns{display:flex;gap:6px}
+.mini-btn{width:38px;height:38px;border-radius:9px;border:1px solid var(--line);background:var(--card2);
+  color:var(--text);cursor:pointer;font-size:1rem}
+.mini-btn.locked{background:var(--gold);color:#20180a;border-color:var(--gold-dk)}
+.phase-tag{font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:12px;white-space:nowrap}
+.ph-new{background:rgba(90,140,230,.2);color:#9fc0f7}
+.ph-pp{background:rgba(224,82,82,.18);color:#f0a0a0}
+.ph-mid{background:rgba(47,158,95,.18);color:#8fdcb0}
+.ph-death{background:rgba(227,178,60,.2);color:var(--gold)}
+select.over-sel{min-height:38px;padding:6px 8px;font-size:.88rem;width:auto;max-width:180px}
+/* ---------- Analysis dashboard ---------- */
+.stat-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
+.stat-card .st-v{font-size:1.7rem;font-weight:800;color:var(--gold)}
+.stat-card .st-l{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.bar-row{margin-bottom:12px}
+.bar-row .bar-l{display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:4px}
+.bar-row .bar-l b{color:var(--gold)}
+.bar-track{height:14px;background:var(--bg2);border-radius:8px;overflow:hidden;border:1px solid var(--line)}
+.bar-fill{height:100%;border-radius:8px;background:linear-gradient(90deg,var(--green),var(--gold));transition:width .4s ease}
+/* ---------- Toast ---------- */
+#toastWrap{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:200;display:flex;flex-direction:column;gap:8px;align-items:center;width:min(94vw,420px)}
+.toast{background:var(--card2);border:1px solid var(--line);color:var(--text);padding:12px 18px;border-radius:12px;
+  box-shadow:var(--shadow);font-size:.92rem;font-weight:600;animation:toastIn .25s ease;text-align:center;width:100%}
+.toast.ok{border-color:var(--green)}
+.toast.err{border-color:var(--red)}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+/* ---------- Match sheet ---------- */
+.sheet{background:#fff;color:#111;border-radius:12px;padding:26px;max-width:820px;margin:0 auto;box-shadow:var(--shadow)}
+.sheet h3{font-size:1.3rem;text-transform:uppercase;letter-spacing:.05em;color:#111}
+.sheet .sh-head{display:flex;align-items:center;gap:16px;border-bottom:3px solid #b8892a;padding-bottom:12px;margin-bottom:14px}
+.sheet .sh-head img{width:70px;height:70px;border-radius:50%;object-fit:cover;border:2px solid #b8892a}
+.sheet .sh-sub{color:#666;font-size:.85rem;text-transform:uppercase;letter-spacing:.1em}
+.sheet .sh-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin-bottom:14px;font-size:.9rem}
+.sheet .sh-grid div{background:#f4f1e8;border-radius:8px;padding:8px 10px}
+.sheet .sh-grid b{display:block;font-size:.7rem;text-transform:uppercase;color:#8a6d1f;letter-spacing:.05em}
+.sheet h4{margin:16px 0 8px;font-size:1rem;text-transform:uppercase;letter-spacing:.06em;color:#8a6d1f;border-bottom:1px solid #ddd;padding-bottom:4px}
+.sheet table{width:100%;border-collapse:collapse;font-size:.85rem}
+.sheet table th{background:#efe9d8;text-align:left;padding:6px 8px;font-size:.72rem;text-transform:uppercase;color:#555}
+.sheet table td{padding:6px 8px;border-bottom:1px solid #eee;color:#111}
+.sheet .sh-notes{border:1px solid #ccc;border-radius:8px;padding:10px;min-height:70px;font-size:.9rem;white-space:pre-wrap}
+.sheet ul{margin-left:20px;font-size:.9rem}
+.sheet .disclaim{font-size:.7rem;color:#999;margin-top:14px;font-style:italic}
+/* ---------- Footer ---------- */
+.app-footer{max-width:1200px;margin:0 auto;padding:20px 14px 40px;color:var(--muted);font-size:.8rem;text-align:center;font-style:italic}
+.print-bar{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--line);
+  padding:10px 14px;display:flex;justify-content:center;z-index:60}
+.print-bar .btn{max-width:480px;width:100%}
+/* ---------- Mobile tweaks ---------- */
+@media (max-width:640px){
+  .header-inner{gap:12px}
+  .logo-img{width:64px;height:64px}
+  .logo-actions{margin-left:0;width:100%}
+  main{padding:14px 10px 100px}
+  table.tbl{min-width:560px}
+}
+/* ============================================================
+   PRINT — professional captain's match sheet only
+   ============================================================ */
+@media print{
+  @page{margin:12mm}
+  body{background:#fff !important;color:#000 !important;font-size:11pt}
+  .app-header,.tabs,.print-bar,.app-footer,#toastWrap,.modal-back,.sheet-controls,.no-print{display:none !important}
+  main{padding:0;max-width:none}
+  .panel{display:none !important}
+  #panel-sheet{display:block !important}
+  #panel-sheet h2,#panel-sheet .lead{display:none}
+  .sheet{box-shadow:none;border-radius:0;padding:0;max-width:none;color:#000}
+  .sheet table tr,.sheet li{page-break-inside:avoid;break-inside:avoid}
+  .sheet h4{page-break-after:avoid}
+  .sheet .sh-grid div{background:#fff;border:1px solid #bbb}
+  .sheet table th{background:#eee;color:#000}
+  a{color:#000;text-decoration:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= HEADER ================= -->
+<header class="app-header">
+  <div class="header-inner">
+    <div class="logo-wrap">
+      <img id="logoImg" class="logo-img" alt="Stallions Cricket Club logo">
+    </div>
+    <div class="title-block">
+      <h1>Stallions Cricket Club</h1>
+      <div class="subtitle">Team Selection &amp; Match Strategy</div>
+    </div>
+    <div class="logo-actions no-print">
+      <button class="btn btn-sm" id="btnUploadLogo" title="Replace the emblem with your own logo image">Upload Logo</button>
+      <button class="btn btn-sm" id="btnResetLogo" title="Restore the built-in Stallions emblem">Default Logo</button>
+      <input type="file" id="logoInput" accept="image/*" hidden>
+    </div>
+  </div>
+</header>
+
+<!-- ================= TABS ================= -->
+<nav class="tabs no-print" aria-label="Sections">
+  <div class="tabs-inner">
+    <button class="tab-btn active" data-tab="match">1. Match Details</button>
+    <button class="tab-btn" data-tab="players">2. Player Ratings</button>
+    <button class="tab-btn" data-tab="xi">3. Playing XI</button>
+    <button class="tab-btn" data-tab="strategy">4. Strategy</button>
+    <button class="tab-btn" data-tab="batting">5. Batting Order</button>
+    <button class="tab-btn" data-tab="bowling">6. Bowling Plan</button>
+    <button class="tab-btn" data-tab="analysis">7. Team Analysis</button>
+    <button class="tab-btn" data-tab="sheet">8. Match-Day Sheet</button>
+  </div>
+</nav>
+
+<main>
+
+<!-- ================= 1. MATCH DETAILS ================= -->
+<section class="panel active" id="panel-match">
+  <h2>Match Details</h2>
+  <p class="lead">Optional match information. It appears on the match-day sheet and drives the bowling plan length.</p>
+  <div class="card">
+    <div class="grid cols-3">
+      <div class="fld-group">
+        <label class="fld" for="mOpponent">Opponent</label>
+        <input type="text" id="mOpponent" placeholder="e.g. Thunder CC" maxlength="60">
+      </div>
+      <div class="fld-group">
+        <label class="fld" for="mDate">Match date</label>
+        <input type="date" id="mDate">
+      </div>
+      <div class="fld-group">
+        <label class="fld" for="mVenue">Venue</label>
+        <input type="text" id="mVenue" placeholder="e.g. Riverside Park Oval" maxlength="80">
+      </div>
+      <div class="fld-group">
+        <label class="fld" for="mFormat">Match format</label>
+        <select id="mFormat">
+          <option value="T10">T10 (10 overs)</option>
+          <option value="T20" selected>T20 (20 overs)</option>
+          <option value="25">25 Overs</option>
+          <option value="30">30 Overs</option>
+          <option value="custom">Custom</option>
+        </select>
+      </div>
+      <div class="fld-group" id="customOversWrap" style="display:none">
+        <label class="fld" for="mCustomOvers">Custom overs (1–50)</label>
+        <input type="number" id="mCustomOvers" min="1" max="50" step="1" value="20">
+      </div>
+      <div class="fld-group">
+        <label class="fld" for="mToss">Toss result</label>
+        <select id="mToss">
+          <option value="">— Not decided —</option>
+          <option value="Won">Won the toss</option>
+          <option value="Lost">Lost the toss</option>
+        </select>
+      </div>
+      <div class="fld-group">
+        <label class="fld" for="mDecision">Batting or bowling first</label>
+        <select id="mDecision">
+          <option value="">— Not decided —</option>
+          <option value="Batting first">Batting first</option>
+          <option value="Bowling first">Bowling first</option>
+        </select>
+      </div>
+    </div>
+    <div class="warn-box warn-green" id="oversInfo"></div>
+  </div>
+</section>
+
+<!-- ================= 2. PLAYER RATINGS ================= -->
+<section class="panel" id="panel-players">
+  <h2>Player Ratings</h2>
+  <p class="lead">Add up to 20 players and rate each 1–10. Ratings you enter here are the only performance information the selector uses. <span id="playerCount"></span></p>
+  <div class="toolbar">
+    <button class="btn btn-gold" id="btnAddPlayer">+ Add Player</button>
+    <button class="btn" id="btnSaveTeam" title="Save a named snapshot of the whole roster and settings">Save Team</button>
+    <button class="btn" id="btnLoadTeam" title="Restore the last saved snapshot">Load Saved Team</button>
+    <button class="btn" id="btnExport" title="Download the roster as a JSON file">Export Team</button>
+    <button class="btn" id="btnImport" title="Load a roster from a JSON file">Import Team</button>
+    <input type="file" id="importFile" accept=".json,application/json" hidden>
+    <button class="btn" id="btnResetDemo" title="Restore the 15 sample players">Reset Demo</button>
+    <button class="btn btn-red" id="btnDeleteSample" title="Delete every player and start with an empty roster">Start Blank Roster</button>
+    <button class="btn btn-red" id="btnClearAll">Clear All Players</button>
+  </div>
+  <div class="player-grid" id="playerList"></div>
+</section>
+
+<!-- ================= 3. PLAYING XI ================= -->
+<section class="panel" id="panel-xi">
+  <h2>Select Playing XI</h2>
+  <p class="lead">Tick exactly 11 available players, or let the selector build a balanced XI from ratings and roles. You can override every warning.</p>
+  <div class="toolbar">
+    <button class="btn btn-gold" id="btnAutoXI">⚡ Auto-Select Best XI</button>
+    <button class="btn" id="btnClearXI">Clear Selection</button>
+  </div>
+  <div class="card" style="margin-bottom:14px">
+    <strong id="xiCount"></strong>
+    <div id="xiWarnings"></div>
+  </div>
+  <div class="player-grid" id="xiList"></div>
+</section>
+
+<!-- ================= 4. STRATEGY ================= -->
+<section class="panel" id="panel-strategy">
+  <h2>Strategy</h2>
+  <p class="lead">The strategy shapes both the batting order and the bowling plan.</p>
+  <div class="strat-grid">
+    <button class="strat-btn" data-strat="aggressive" id="stratAggressive">
+      <span class="s-icon">🔥</span>
+      <span class="s-name">Aggressive</span>
+      <span class="s-desc">Best hitters up top, strongest bowlers get the key overs, reliable death bowling held back.</span>
+    </button>
+    <button class="strat-btn active" data-strat="balanced" id="stratBalanced">
+      <span class="s-icon">⚖️</span>
+      <span class="s-name">Balanced</span>
+      <span class="s-desc">One anchor opener, depth through the order, overs shared across the attack.</span>
+    </button>
+    <button class="strat-btn" data-strat="experimental" id="stratExperimental">
+      <span class="s-icon">🧪</span>
+      <span class="s-name">Experimental / Test</span>
+      <span class="s-desc">Controlled randomization — developing players get chances while key roles stay covered.</span>
+    </button>
+  </div>
+  <div class="card" style="margin-bottom:14px">
+    <label class="chk-pill" id="fullyRandomWrap">
+      <input type="checkbox" id="chkFullyRandom">
+      Fully Random Experimental Mode — shuffle everything (Experimental strategy only)
+    </label>
+    <p class="help" style="margin-top:8px" id="stratDesc"></p>
+  </div>
+  <button class="btn btn-gold btn-block" id="btnGenerate" style="font-size:1.05rem">🏏 Generate Batting Order &amp; Bowling Plan</button>
+</section>
+
+<!-- ================= 5. BATTING ORDER ================= -->
+<section class="panel" id="panel-batting">
+  <h2>Batting Order</h2>
+  <p class="lead">Positions 1–11 with the reasoning for each placement. Lock any position, then regenerate the rest.</p>
+  <div class="toolbar">
+    <button class="btn btn-gold" id="btnRegenBatting">↻ Regenerate Unlocked Positions</button>
+  </div>
+  <div id="battingNote"></div>
+  <div class="tbl-wrap">
+    <table class="tbl" id="battingTable">
+      <thead><tr>
+        <th>#</th><th>Player</th><th>Role</th><th>Bat</th><th>Hand</th><th>Bowling</th><th>Overall</th><th>Why here</th><th>Adjust</th>
+      </tr></thead>
+      <tbody id="battingList"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ================= 6. BOWLING PLAN ================= -->
+<section class="panel" id="panel-bowling">
+  <h2>Bowling Plan</h2>
+  <p class="lead">Over-by-over plan for the scheduled innings. Change any over's bowler with the dropdown — warnings update instantly.</p>
+  <div class="toolbar">
+    <button class="btn btn-gold" id="btnRegenBowling">↻ Regenerate Bowling Plan</button>
+  </div>
+  <div class="warn-box warn-green" id="bowlingInfo"></div>
+  <div id="bowlingWarnings"></div>
+  <div class="tbl-wrap" style="margin-bottom:16px">
+    <table class="tbl">
+      <thead><tr>
+        <th>Over</th><th>Bowler</th><th>Style</th><th>Rating</th><th>Phase</th><th>Reason</th>
+      </tr></thead>
+      <tbody id="bowlingPlanBody"></tbody>
+    </table>
+  </div>
+  <h2 style="font-size:1.1rem">Bowling Summary</h2>
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <thead><tr>
+        <th>Player</th><th>Overs</th><th>Style</th><th>Rating</th><th>New ball</th><th>Powerplay</th><th>Middle</th><th>Death</th>
+      </tr></thead>
+      <tbody id="bowlingSummaryBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ================= 7. TEAM ANALYSIS ================= -->
+<section class="panel" id="panel-analysis">
+  <h2>Team Analysis</h2>
+  <p class="lead">Balance dashboard for the current XI (or all available players until an XI is picked).</p>
+  <div class="grid cols-4" id="analysisCards" style="margin-bottom:16px"></div>
+  <div class="grid cols-2" style="margin-bottom:16px">
+    <div class="card" id="analysisBars"></div>
+    <div class="card" id="analysisComposition"></div>
+  </div>
+  <div class="card">
+    <h2 style="font-size:1.1rem">Why This Lineup Was Selected</h2>
+    <div id="whyLineup" style="font-size:.95rem;color:#c8d3ec"></div>
+  </div>
+</section>
+
+<!-- ================= 8. MATCH-DAY SHEET ================= -->
+<section class="panel" id="panel-sheet">
+  <h2>Match-Day Sheet</h2>
+  <p class="lead">A clean captain's sheet. Use the print button below to print it or save it as a PDF.</p>
+  <div class="card sheet-controls no-print" style="margin-bottom:14px">
+    <label class="fld" for="captainNotes">Captain's notes / match instructions</label>
+    <textarea id="captainNotes" placeholder="Field placements, over-rate reminders, batting pairs, drinks break plan..."></textarea>
+  </div>
+  <div class="sheet" id="matchSheet"></div>
+</section>
+
+</main>
+
+<footer class="app-footer">
+  Lineup recommendations use general limited-overs and T20 strategy principles inspired by professional cricket.
+  They are not based on live IPL data. All data stays in this browser (localStorage) — nothing is sent anywhere.
+</footer>
+
+<div class="print-bar no-print">
+  <button class="btn btn-gold" id="btnPrint">🖨️ Print / Save as PDF — Match-Day Sheet</button>
+</div>
+
+<!-- ================= PLAYER EDITOR MODAL ================= -->
+<div class="modal-back" id="playerModal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h3 id="modalTitle">Add Player</h3>
+    <input type="hidden" id="editingId">
+    <div class="fld-group">
+      <label class="fld" for="pName">Player name *</label>
+      <input type="text" id="pName" maxlength="40" placeholder="Full name or nickname">
+    </div>
+    <div class="grid cols-2">
+      <div class="fld-group">
+        <label class="fld" for="pRole">Batting role</label>
+        <select id="pRole">
+          <option value="opener">Opening batsman</option>
+          <option value="top">Top-order batsman</option>
+          <option value="middle" selected>Middle-order batsman</option>
+          <option value="finisher">Finisher</option>
+          <option value="bat-ar">Batting all-rounder</option>
+          <option value="bowl-ar">Bowling all-rounder</option>
+          <option value="tail">Tail-end batsman</option>
+        </select>
+      </div>
+      <div class="fld-group">
+        <label class="fld" for="pHand">Batting style</label>
+        <select id="pHand">
+          <option value="R" selected>Right-handed</option>
+          <option value="L">Left-handed</option>
+        </select>
+      </div>
+      <div class="fld-group">
+        <label class="fld" for="pStyle">Bowling style</label>
+        <select id="pStyle">
+          <option value="ra-fast">Right-arm fast</option>
+          <option value="ra-fm">Right-arm fast-medium</option>
+          <option value="ra-med" selected>Right-arm medium</option>
+          <option value="la-fast">Left-arm fast</option>
+          <option value="la-med">Left-arm medium</option>
+          <option value="off-spin">Off-spin</option>
+          <option value="leg-spin">Leg-spin</option>
+          <option value="la-orth">Left-arm orthodox spin</option>
+          <option value="la-wrist">Left-arm wrist spin</option>
+          <option value="part">Part-time bowler</option>
+          <option value="none">Does not bowl</option>
+        </select>
+      </div>
+      <div class="fld-group">
+        <label class="fld" for="pPhase">Preferred bowling phase (optional)</label>
+        <select id="pPhase">
+          <option value="">— None —</option>
+          <option value="new">New ball</option>
+          <option value="pp">Powerplay</option>
+          <option value="mid">Middle overs</option>
+          <option value="death">Death overs</option>
+          <option value="flex">Flexible</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="fld-group">
+      <label class="fld">Batting rating: <span class="slider-val" id="vBat">5</span></label>
+      <div class="slider-row">
+        <button type="button" class="step-btn" data-step="-1" data-target="rBat">−</button>
+        <input type="range" id="rBat" min="1" max="10" step="1" value="5">
+        <button type="button" class="step-btn" data-step="1" data-target="rBat">+</button>
+      </div>
+    </div>
+    <div class="fld-group">
+      <label class="fld">Bowling rating: <span class="slider-val" id="vBowl">5</span></label>
+      <div class="slider-row">
+        <button type="button" class="step-btn" data-step="-1" data-target="rBowl">−</button>
+        <input type="range" id="rBowl" min="1" max="10" step="1" value="5">
+        <button type="button" class="step-btn" data-step="1" data-target="rBowl">+</button>
+      </div>
+    </div>
+    <div class="fld-group">
+      <label class="fld">Fielding rating: <span class="slider-val" id="vField">5</span></label>
+      <div class="slider-row">
+        <button type="button" class="step-btn" data-step="-1" data-target="rField">−</button>
+        <input type="range" id="rField" min="1" max="10" step="1" value="5">
+        <button type="button" class="step-btn" data-step="1" data-target="rField">+</button>
+      </div>
+    </div>
+    <div class="fld-group">
+      <label class="fld">Fitness / stamina rating: <span class="slider-val" id="vFit">5</span></label>
+      <div class="slider-row">
+        <button type="button" class="step-btn" data-step="-1" data-target="rFit">−</button>
+        <input type="range" id="rFit" min="1" max="10" step="1" value="5">
+        <button type="button" class="step-btn" data-step="1" data-target="rFit">+</button>
+      </div>
+    </div>
+
+    <div class="fld-group">
+      <label class="fld">Flags</label>
+      <div class="chk-row">
+        <label class="chk-pill"><input type="checkbox" id="cAvail" checked> Available</label>
+        <label class="chk-pill"><input type="checkbox" id="cXI"> Playing XI</label>
+        <label class="chk-pill"><input type="checkbox" id="cWK"> Wicketkeeper</label>
+        <label class="chk-pill"><input type="checkbox" id="cCap"> Captain</label>
+        <label class="chk-pill"><input type="checkbox" id="cVC"> Vice-captain</label>
+      </div>
+      <p class="help">Only one captain and one vice-captain — ticking these moves the armband from anyone else.</p>
+    </div>
+    <div class="fld-group">
+      <label class="fld" for="pNotes">Notes (optional)</label>
+      <input type="text" id="pNotes" maxlength="120" placeholder="e.g. Reliable under pressure, safe catcher, injury concern">
+    </div>
+    <div class="m-actions">
+      <button class="btn" id="btnCancelPlayer">Cancel</button>
+      <button class="btn btn-gold" id="btnSavePlayer">Save Player</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastWrap" aria-live="polite"></div>
+<script>
+'use strict';
+/* ============================================================
+   STALLIONS TEAM SELECTOR — application logic (vanilla JS)
+   Sections:
+     1. Constants & lookups
+     2. State, storage, helpers
+     3. Sample data
+     4. Logo handling
+     5. Player roster UI (cards, modal, import/export)
+     6. Playing XI (manual + auto-select + validation)
+     7. Strategy
+     8. Batting-order generator
+     9. Bowling-plan generator
+    10. Team analysis dashboard
+    11. Match-day sheet & print
+    12. Event wiring & init
+   ============================================================ */
+
+/* ---------- 1. Constants & lookups ---------- */
+const LS_STATE = 'stallions.state.v1';
+const LS_SNAP  = 'stallions.snapshot.v1';
+const LS_LOGO  = 'stallions.logo.v1';
+const MAX_PLAYERS = 20;
+
+const ROLE_LABEL = {opener:'Opening batsman', top:'Top-order batsman', middle:'Middle-order batsman',
+  finisher:'Finisher', 'bat-ar':'Batting all-rounder', 'bowl-ar':'Bowling all-rounder', tail:'Tail-end batsman'};
+const STYLE_LABEL = {'ra-fast':'Right-arm fast','ra-fm':'Right-arm fast-medium','ra-med':'Right-arm medium',
+  'la-fast':'Left-arm fast','la-med':'Left-arm medium','off-spin':'Off-spin','leg-spin':'Leg-spin',
+  'la-orth':'Left-arm orthodox spin','la-wrist':'Left-arm wrist spin', part:'Part-time bowler', none:'Does not bowl'};
+const PHASE_LABEL = {new:'New ball', pp:'Powerplay', mid:'Middle overs', death:'Death overs', flex:'Flexible'};
+const HAND_LABEL = {R:'Right-handed', L:'Left-handed'};
+const BATTING_ROLES = ['opener','top','middle','finisher','bat-ar']; // "recognized batsman" roles
+
+/* Bowling style grouped into broad classes used by the plan logic */
+function bowlClass(style){
+  if (['ra-fast','ra-fm','la-fast'].includes(style)) return 'pace';
+  if (['ra-med','la-med'].includes(style)) return 'medium';
+  if (['off-spin','leg-spin','la-orth','la-wrist'].includes(style)) return 'spin';
+  if (style === 'part') return 'part';
+  return 'none';
+}
+/* A player counts as a realistic bowling option */
+function isBowlingOption(p){ return p.style !== 'none' && p.bowl >= 4; }
+
+/* ---------- 2. State, storage, helpers ---------- */
+function defaultState(){
+  return {
+    players: [],
+    match: {opponent:'', date:'', venue:'', format:'T20', customOvers:20, toss:'', decision:''},
+    strategy: 'balanced',
+    fullyRandom: false,
+    battingOrder: [],          // array of player ids, index 0 = position 1
+    locked: {},                // {position(1-based): playerId}
+    batReasons: {},            // {playerId: reason string}
+    battingGenerated: false,
+    bowlingPlan: [],           // [{over, id, reason, manual}]
+    notes: '',
+    sampleLoaded: true
+  };
+}
+let state = defaultState();
+
+function saveState(){
+  try { localStorage.setItem(LS_STATE, JSON.stringify(state)); }
+  catch(e){ toast('Could not save to browser storage.', 'err'); }
+}
+function loadState(){
+  try {
+    const raw = localStorage.getItem(LS_STATE);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    if (!parsed || !Array.isArray(parsed.players)) return false;
+    state = Object.assign(defaultState(), parsed);
+    state.match = Object.assign(defaultState().match, parsed.match || {});
+    state.players = parsed.players.map(sanitizePlayer).filter(Boolean);
+    return true;
+  } catch(e){ return false; }
+}
+function uid(){ return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function clampRating(v){ v = parseInt(v,10); return isNaN(v) ? 5 : Math.min(10, Math.max(1, v)); }
+
+/* Validate/normalize a player object (also used on JSON import) */
+function sanitizePlayer(p){
+  if (!p || typeof p.name !== 'string' || !p.name.trim()) return null;
+  return {
+    id: (typeof p.id === 'string' && p.id) ? p.id : uid(),
+    name: p.name.trim().slice(0,40),
+    bat: clampRating(p.bat), bowl: clampRating(p.bowl),
+    field: clampRating(p.field), fit: clampRating(p.fit),
+    role: ROLE_LABEL[p.role] ? p.role : 'middle',
+    hand: p.hand === 'L' ? 'L' : 'R',
+    style: STYLE_LABEL[p.style] ? p.style : 'none',
+    phase: PHASE_LABEL[p.phase] ? p.phase : '',
+    notes: (typeof p.notes === 'string' ? p.notes : '').slice(0,120),
+    available: p.available !== false,
+    inXI: p.inXI === true,
+    wk: p.wk === true, cap: p.cap === true, vc: p.vc === true
+  };
+}
+function overall(p){ return Math.round((p.bat*0.35 + p.bowl*0.35 + p.field*0.20 + p.fit*0.10)*10)/10; }
+function byId(id){ return state.players.find(p => p.id === id) || null; }
+function xiPlayers(){ return state.players.filter(p => p.inXI && p.available); }
+function availablePlayers(){ return state.players.filter(p => p.available); }
+
+/* HTML-escape all user-entered text before rendering (prevents injection) */
+function esc(s){
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+/* Deterministic sort helper: score desc, then name asc, then id asc */
+function bestFirst(list, scoreFn){
+  return [...list].sort((a,b) => scoreFn(b)-scoreFn(a) || a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
+}
+function toast(msg, kind){
+  const wrap = document.getElementById('toastWrap');
+  const t = document.createElement('div');
+  t.className = 'toast' + (kind==='ok' ? ' ok' : kind==='err' ? ' err' : '');
+  t.textContent = msg;
+  wrap.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(), 320); }, 2600);
+}
+
+/* Scheduled overs for the innings, from match settings */
+function matchOvers(){
+  const f = state.match.format;
+  if (f === 'T10') return 10;
+  if (f === 'T20') return 20;
+  if (f === '25') return 25;
+  if (f === '30') return 30;
+  const c = parseInt(state.match.customOvers,10);
+  return isNaN(c) ? 20 : Math.min(50, Math.max(1, c));
+}
+/* Standard limited-overs rule: max one-fifth of scheduled overs, rounded up */
+function maxOversPerBowler(){ return Math.max(1, Math.ceil(matchOvers()/5)); }
+/* Phase of a given over (1-based) */
+function phaseOf(over, N){
+  const pp = Math.max(2, Math.round(N*0.3));
+  const death = Math.max(1, Math.round(N*0.25));
+  if (over <= Math.min(2,N)) return 'new';
+  if (over <= pp) return 'pp';
+  if (over > N - death) return 'death';
+  return 'mid';
+}
+const PHASE_TAG = {new:'ph-new', pp:'ph-pp', mid:'ph-mid', death:'ph-death'};
+const PHASE_NAME = {new:'New ball', pp:'Powerplay', mid:'Middle overs', death:'Death overs'};
+
+/* ---------- 3. Sample data (15 fictional players) ---------- */
+function samplePlayers(){
+  const rows = [
+    // name, bat,bowl,field,fit, role, hand, style, phase, wk,cap,vc, notes
+    ['Arjun Mehta',    9,2,7,7,'opener','R','none','',    false,false,false,'Strong against pace'],
+    ['Dev Sharma',     8,3,6,6,'opener','L','part','',    false,false,false,'Reliable under pressure'],
+    ['Rohan Patel',    8,4,7,8,'top','R','part','',       false,false,true ,''],
+    ['Sunil Verma',    7,2,8,7,'middle','R','none','',    true ,false,false,'Safe catcher'],
+    ['Karan Gill',     7,7,7,8,'bat-ar','R','ra-med','mid',false,true ,false,'Reliable under pressure'],
+    ['Manny Dhillon',  6,8,6,7,'bowl-ar','L','la-med','pp',false,false,false,''],
+    ['Faisal Qureshi', 5,9,6,8,'tail','R','ra-fast','new',false,false,false,''],
+    ['Tony Fernandes', 4,8,5,6,'tail','R','ra-fm','death',false,false,false,'Reliable under pressure'],
+    ['Sandeep Rao',    4,8,6,7,'tail','R','off-spin','mid',false,false,false,''],
+    ['Harpreet Bains', 5,7,5,6,'bowl-ar','L','la-orth','mid',false,false,false,''],
+    ['Nikhil Joshi',   8,3,8,9,'finisher','R','part','',  false,false,false,'Good boundary fielder'],
+    ['Zubair Ahmed',   6,6,6,5,'bowl-ar','R','leg-spin','mid',false,false,false,'Limited stamina'],
+    ['Peter D’Costa', 6,2,7,6,'middle','L','none','',false,false,false,'Safe catcher, backup keeper'],
+    ['Ravi Iyer',      5,5,5,5,'middle','R','ra-med','flex',false,false,false,''],
+    ['Gurjot Sekhon',  7,4,6,7,'top','L','part','',       false,false,false,'Strong against spin']
+  ];
+  return rows.map(r => sanitizePlayer({
+    id: uid(), name:r[0], bat:r[1], bowl:r[2], field:r[3], fit:r[4],
+    role:r[5], hand:r[6], style:r[7], phase:r[8], wk:r[9], cap:r[10], vc:r[11],
+    notes:r[12], available:true, inXI:false
+  }));
+}
+
+/* ---------- 4. Logo handling ---------- */
+/* Built-in Stallions emblem (inline SVG, gold on navy shield) */
+function defaultLogo(){
+  const svg =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">'+
+  '<defs><radialGradient id="g" cx="50%" cy="38%" r="70%">'+
+  '<stop offset="0%" stop-color="#25335c"/><stop offset="100%" stop-color="#0d1321"/></radialGradient></defs>'+
+  '<circle cx="100" cy="100" r="97" fill="url(#g)" stroke="#e3b23c" stroke-width="6"/>'+
+  '<circle cx="100" cy="100" r="84" fill="none" stroke="#e3b23c" stroke-width="1.5" opacity="0.6"/>'+
+  // stylized stallion head (silhouette)
+  '<path fill="#e3b23c" d="M128 48c-4 8-12 10-16 18-8-4-20-4-28 2-10 8-16 20-18 32-2 10-2 22 2 30l10 16c2 3 6 3 8 0l4-8c8 6 20 8 30 4l-6-8c-8 2-16 0-22-6-8-8-10-20-6-30 3-9 11-16 21-17 4 0 8 1 11 3l6 10c2 3 5 3 7 1l8-9c3-4 4-9 3-14l-4-14c-1-4-6-6-10-4z"/>'+
+  // mane strokes
+  '<path fill="#b8892a" d="M124 54c-2 5-7 8-10 12l5 3c4-4 8-9 9-14zM70 78c-6 8-9 18-10 27l6 1c1-9 4-18 9-25z"/>'+
+  // cricket ball with seam
+  '<circle cx="136" cy="130" r="15" fill="#c0392b" stroke="#7d241a" stroke-width="2"/>'+
+  '<path d="M127 120c6 6 6 14 0 20M145 120c-6 6-6 14 0 20" stroke="#f5e6d0" stroke-width="1.6" fill="none"/>'+
+  '<text x="100" y="182" text-anchor="middle" font-family="Georgia,serif" font-size="17" font-weight="bold" fill="#e3b23c" letter-spacing="4">STALLIONS</text>'+
+  '</svg>';
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+}
+function applyLogo(){
+  const src = localStorage.getItem(LS_LOGO) || defaultLogo();
+  document.getElementById('logoImg').src = src;
+  renderSheet(); // keep sheet logo in sync
+}
+function handleLogoUpload(file){
+  if (!file || !file.type.startsWith('image/')){ toast('Please choose an image file.', 'err'); return; }
+  if (file.size > 2.5 * 1024 * 1024){ toast('Image too large — please use a file under 2.5 MB.', 'err'); return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    try { localStorage.setItem(LS_LOGO, reader.result); applyLogo(); toast('Logo updated.', 'ok'); }
+    catch(e){ toast('Image too large to store in this browser.', 'err'); }
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ---------- 5. Player roster UI ---------- */
+function playerBadges(p){
+  let b = '';
+  if (p.inXI) b += '<span class="badge xi">XI</span>';
+  if (p.cap) b += '<span class="badge cap">Captain</span>';
+  if (p.vc) b += '<span class="badge vc">Vice-Capt</span>';
+  if (p.wk) b += '<span class="badge wk">WK</span>';
+  b += '<span class="badge">' + esc(ROLE_LABEL[p.role]) + '</span>';
+  b += '<span class="badge">' + (p.hand==='L' ? 'LHB' : 'RHB') + '</span>';
+  b += '<span class="badge">' + esc(STYLE_LABEL[p.style]) + '</span>';
+  if (p.phase) b += '<span class="badge">Prefers: ' + esc(PHASE_LABEL[p.phase]) + '</span>';
+  if (!p.available) b += '<span class="badge" style="color:var(--red);border-color:var(--red)">Unavailable</span>';
+  return b;
+}
+function renderPlayers(){
+  const wrap = document.getElementById('playerList');
+  const count = document.getElementById('playerCount');
+  count.textContent = state.players.length + ' / ' + MAX_PLAYERS + ' players on the roster.';
+  if (!state.players.length){
+    wrap.innerHTML = '<div class="card">No players yet. Tap <strong>+ Add Player</strong> to build your roster, or <strong>Reset Demo</strong> to load 15 sample players.</div>';
+    return;
+  }
+  const sorted = bestFirst(state.players, overall);
+  wrap.innerHTML = sorted.map(p => {
+    const o = overall(p);
+    return '<article class="pcard' + (p.available ? '' : ' unavailable') + '" data-id="' + p.id + '">' +
+      '<div class="ovr-chip">' + o.toFixed(1) + '<small>OVERALL</small></div>' +
+      '<div class="pname">' + esc(p.name) + '</div>' +
+      '<div class="badges">' + playerBadges(p) + '</div>' +
+      '<div class="rating-row">' +
+        '<div class="rating-cell"><div class="rc-l">Bat</div><div class="rc-v">' + p.bat + '</div></div>' +
+        '<div class="rating-cell"><div class="rc-l">Bowl</div><div class="rc-v">' + p.bowl + '</div></div>' +
+        '<div class="rating-cell"><div class="rc-l">Field</div><div class="rc-v">' + p.field + '</div></div>' +
+        '<div class="rating-cell"><div class="rc-l">Fit</div><div class="rc-v">' + p.fit + '</div></div>' +
+      '</div>' +
+      (p.notes ? '<div class="pnotes">' + esc(p.notes) + '</div>' : '') +
+      '<div class="pactions">' +
+        '<button class="btn btn-sm act-edit">✏️ Edit</button>' +
+        '<button class="btn btn-sm btn-red act-del">🗑 Delete</button>' +
+        '<label class="chk-pill" style="min-height:38px"><input type="checkbox" class="act-avail"' + (p.available?' checked':'') + '> Available</label>' +
+      '</div></article>';
+  }).join('');
+}
+
+/* --- modal open/close/save --- */
+const modal = () => document.getElementById('playerModal');
+function openPlayerModal(p){
+  document.getElementById('modalTitle').textContent = p ? 'Edit Player' : 'Add Player';
+  document.getElementById('editingId').value = p ? p.id : '';
+  document.getElementById('pName').value = p ? p.name : '';
+  document.getElementById('pRole').value = p ? p.role : 'middle';
+  document.getElementById('pHand').value = p ? p.hand : 'R';
+  document.getElementById('pStyle').value = p ? p.style : 'ra-med';
+  document.getElementById('pPhase').value = p ? p.phase : '';
+  document.getElementById('pNotes').value = p ? p.notes : '';
+  setSlider('rBat','vBat', p ? p.bat : 5); setSlider('rBowl','vBowl', p ? p.bowl : 5);
+  setSlider('rField','vField', p ? p.field : 5); setSlider('rFit','vFit', p ? p.fit : 5);
+  document.getElementById('cAvail').checked = p ? p.available : true;
+  document.getElementById('cXI').checked = p ? p.inXI : false;
+  document.getElementById('cWK').checked = p ? p.wk : false;
+  document.getElementById('cCap').checked = p ? p.cap : false;
+  document.getElementById('cVC').checked = p ? p.vc : false;
+  modal().classList.add('open');
+  document.getElementById('pName').focus();
+}
+function closePlayerModal(){ modal().classList.remove('open'); }
+function setSlider(id, vid, val){
+  document.getElementById(id).value = val;
+  document.getElementById(vid).textContent = val;
+}
+function savePlayerFromModal(){
+  const name = document.getElementById('pName').value.trim();
+  if (!name){ toast('Player name is required.', 'err'); return; }
+  const editId = document.getElementById('editingId').value;
+  // duplicate-name prevention (case-insensitive, excluding the player being edited)
+  const dup = state.players.find(p => p.name.toLowerCase() === name.toLowerCase() && p.id !== editId);
+  if (dup){ toast('A player named "' + name + '" already exists.', 'err'); return; }
+  if (!editId && state.players.length >= MAX_PLAYERS){ toast('Roster is full (' + MAX_PLAYERS + ' players).', 'err'); return; }
+
+  const data = {
+    name,
+    bat: clampRating(document.getElementById('rBat').value),
+    bowl: clampRating(document.getElementById('rBowl').value),
+    field: clampRating(document.getElementById('rField').value),
+    fit: clampRating(document.getElementById('rFit').value),
+    role: document.getElementById('pRole').value,
+    hand: document.getElementById('pHand').value,
+    style: document.getElementById('pStyle').value,
+    phase: document.getElementById('pPhase').value,
+    notes: document.getElementById('pNotes').value.trim(),
+    available: document.getElementById('cAvail').checked,
+    inXI: document.getElementById('cXI').checked,
+    wk: document.getElementById('cWK').checked,
+    cap: document.getElementById('cCap').checked,
+    vc: document.getElementById('cVC').checked
+  };
+  if (data.inXI && !data.available){ data.inXI = false; toast('Unavailable players cannot be in the XI — XI flag removed.', 'err'); }
+
+  let target;
+  if (editId){ target = byId(editId); Object.assign(target, sanitizePlayer(Object.assign({id:editId}, data))); }
+  else { target = sanitizePlayer(data); state.players.push(target); }
+  // only one captain / vice-captain across the roster
+  if (data.cap) state.players.forEach(p => { if (p.id !== target.id) p.cap = false; });
+  if (data.vc)  state.players.forEach(p => { if (p.id !== target.id) p.vc  = false; });
+
+  closePlayerModal();
+  persistAndRender();
+  toast(editId ? 'Player updated.' : 'Player added.', 'ok');
+}
+function deletePlayer(id){
+  const p = byId(id);
+  if (!p) return;
+  if (!confirm('Delete ' + p.name + ' from the roster?')) return;
+  state.players = state.players.filter(x => x.id !== id);
+  state.battingOrder = state.battingOrder.filter(x => x !== id);
+  Object.keys(state.locked).forEach(k => { if (state.locked[k] === id) delete state.locked[k]; });
+  state.bowlingPlan.forEach(o => { if (o.id === id) { o.id = null; o.reason = 'Bowler removed — pick a replacement.'; o.manual = true; } });
+  persistAndRender();
+  toast('Player deleted.', 'ok');
+}
+
+/* --- import / export / save / load / clear --- */
+function exportTeam(){
+  const payload = {app:'stallions-team-selector', version:1, exported:new Date().toISOString(),
+    match:state.match, strategy:state.strategy, players:state.players, notes:state.notes};
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'stallions-team.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast('Team exported as JSON.', 'ok');
+}
+function importTeam(file){
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      const list = Array.isArray(data) ? data : data.players;
+      if (!Array.isArray(list)) throw new Error('no players array');
+      const cleaned = list.map(sanitizePlayer).filter(Boolean).slice(0, MAX_PLAYERS);
+      if (!cleaned.length) throw new Error('no valid players');
+      // de-duplicate by name, keep first
+      const seen = new Set();
+      state.players = cleaned.filter(p => {
+        const k = p.name.toLowerCase();
+        if (seen.has(k)) return false;
+        seen.add(k); return true;
+      });
+      if (data.match) state.match = Object.assign(defaultState().match, data.match);
+      if (typeof data.notes === 'string') state.notes = data.notes;
+      if (['aggressive','balanced','experimental'].includes(data.strategy)) state.strategy = data.strategy;
+      state.battingOrder = []; state.locked = {}; state.batReasons = {}; state.bowlingPlan = [];
+      state.battingGenerated = false; state.sampleLoaded = false;
+      persistAndRender();
+      toast('Imported ' + state.players.length + ' players.', 'ok');
+    } catch(e){ toast('Import failed — that file is not a valid team JSON.', 'err'); }
+  };
+  reader.readAsText(file);
+}
+function saveSnapshot(){
+  try { localStorage.setItem(LS_SNAP, JSON.stringify(state)); toast('Team saved in this browser.', 'ok'); }
+  catch(e){ toast('Could not save (storage full?).', 'err'); }
+}
+function loadSnapshot(){
+  const raw = localStorage.getItem(LS_SNAP);
+  if (!raw){ toast('No saved team found yet — use Save Team first.', 'err'); return; }
+  try {
+    const parsed = JSON.parse(raw);
+    state = Object.assign(defaultState(), parsed);
+    state.players = (parsed.players || []).map(sanitizePlayer).filter(Boolean);
+    persistAndRender();
+    toast('Saved team loaded.', 'ok');
+  } catch(e){ toast('Saved team could not be read.', 'err'); }
+}
+function clearAllPlayers(){
+  if (!confirm('Clear ALL players and generated lineups? This cannot be undone (Export first if unsure).')) return;
+  state.players = []; state.battingOrder = []; state.locked = {}; state.batReasons = {};
+  state.bowlingPlan = []; state.battingGenerated = false; state.sampleLoaded = false;
+  persistAndRender();
+  toast('All players cleared.', 'ok');
+}
+function resetDemo(){
+  if (state.players.length && !confirm('Replace the current roster with the 15 sample players?')) return;
+  state = defaultState();
+  state.players = samplePlayers();
+  persistAndRender();
+  toast('Demo roster loaded (15 sample players).', 'ok');
+}
+function startBlank(){
+  if (!confirm('Delete the sample data and start with a blank roster?')) return;
+  state = defaultState();
+  state.players = []; state.sampleLoaded = false;
+  persistAndRender();
+  toast('Blank roster ready — add your first player.', 'ok');
+}
+
+/* ---------- 6. Playing XI ---------- */
+function renderXI(){
+  const avail = availablePlayers();
+  const selected = xiPlayers();
+  document.getElementById('xiCount').textContent =
+    selected.length + ' of 11 selected · ' + avail.length + ' available player' + (avail.length===1?'':'s') + ' on the roster';
+
+  // warnings (captain may override all of them)
+  const warnings = validateXI(selected, avail);
+  const wEl = document.getElementById('xiWarnings');
+  wEl.innerHTML = warnings.length
+    ? '<div class="warn-box warn-amber"><strong>Warnings (you can override all of these):</strong><ul>' +
+      warnings.map(w => '<li>' + esc(w) + '</li>').join('') + '</ul></div>'
+    : '<div class="warn-box warn-green">✔ XI looks balanced — no warnings.</div>';
+
+  const wrap = document.getElementById('xiList');
+  if (!avail.length){
+    wrap.innerHTML = '<div class="card">No available players. Mark players as available in the Player Ratings tab.</div>';
+    return;
+  }
+  wrap.innerHTML = bestFirst(avail, overall).map(p =>
+    '<article class="pcard" data-id="' + p.id + '">' +
+      '<div class="ovr-chip">' + overall(p).toFixed(1) + '<small>OVERALL</small></div>' +
+      '<div class="pname">' + esc(p.name) + '</div>' +
+      '<div class="badges">' + playerBadges(p) + '</div>' +
+      '<div class="pmeta">Bat ' + p.bat + ' · Bowl ' + p.bowl + ' · Field ' + p.field + ' · Fit ' + p.fit + '</div>' +
+      '<label class="chk-pill"><input type="checkbox" class="act-xi"' + (p.inXI?' checked':'') + '> In Playing XI</label>' +
+    '</article>').join('');
+}
+function validateXI(selected, avail){
+  const w = [];
+  if (avail.length < 11) w.push('Only ' + avail.length + ' players are available — you need 11 for a full side.');
+  if (selected.length !== 11) w.push(selected.length + ' players selected — a playing XI needs exactly 11.');
+  if (selected.length){
+    if (!selected.some(p => p.wk)) w.push('No wicketkeeper in the XI.');
+    const options = selected.filter(isBowlingOption);
+    if (options.length < 4) w.push('Only ' + options.length + ' realistic bowling options (bowling rating 4+) — at least 4 recommended.');
+    if (!selected.some(p => ['pace','medium'].includes(bowlClass(p.style)) && p.bowl >= 4)) w.push('No pace or medium-pace option for the new ball.');
+    if (!selected.some(p => bowlClass(p.style) === 'spin' && p.bowl >= 4)) w.push('No spin option in the XI.');
+    const batsmen = selected.filter(p => BATTING_ROLES.includes(p.role) && p.bat >= 6);
+    if (batsmen.length < 4) w.push('Only ' + batsmen.length + ' recognized batsmen (batting role with rating 6+) — batting may be thin.');
+    const specialists = selected.filter(p => p.bat <= 4);
+    if (specialists.length >= 5) w.push(specialists.length + ' players with batting rating 4 or lower — too many specialist bowlers weakens the batting.');
+    if (!selected.some(p => p.role === 'finisher' || (p.bat >= 6 && p.fit >= 7))) w.push('No obvious finisher (finisher role, or bat 6+ with fitness 7+).');
+  }
+  return w;
+}
+/* Auto-select a balanced XI. Greedy but constraint-driven; never excludes players by age — ratings/roles only. */
+function autoSelectXI(){
+  const pool = availablePlayers();
+  state.players.forEach(p => p.inXI = false);
+  if (!pool.length){ toast('No available players to select from.', 'err'); renderAll(); return; }
+
+  const picked = new Set();
+  const pick = p => { if (p && !picked.has(p.id) && picked.size < 11) picked.add(p.id); };
+  const notPicked = fn => pool.filter(p => !picked.has(p.id) && (!fn || fn(p)));
+
+  // 1. Best wicketkeeper
+  pick(bestFirst(notPicked(p => p.wk), overall)[0]);
+  // 2. Two best pace/medium new-ball options
+  bestFirst(notPicked(p => ['pace','medium'].includes(bowlClass(p.style)) && p.bowl >= 4), p => p.bowl*10 + p.fit).slice(0,2).forEach(pick);
+  // 3. Best spinner
+  pick(bestFirst(notPicked(p => bowlClass(p.style) === 'spin' && p.bowl >= 4), p => p.bowl*10 + p.fit)[0]);
+  // 4. Top up to 4 total bowling options
+  while (pool.filter(p => picked.has(p.id) && isBowlingOption(p)).length < 4){
+    const next = bestFirst(notPicked(isBowlingOption), p => p.bowl*10 + p.fit)[0];
+    if (!next) break;
+    pick(next);
+  }
+  // 5. Best finisher
+  if (![...picked].some(id => { const p = byId(id); return p.role === 'finisher' || (p.bat >= 6 && p.fit >= 7); }))
+    pick(bestFirst(notPicked(p => p.role === 'finisher' || (p.bat >= 6 && p.fit >= 7)), p => p.bat*10 + p.fit)[0]);
+  // 6. Recognized batsmen up to 4
+  while (pool.filter(p => picked.has(p.id) && BATTING_ROLES.includes(p.role) && p.bat >= 6).length < 4){
+    const next = bestFirst(notPicked(p => BATTING_ROLES.includes(p.role) && p.bat >= 6), p => p.bat*10 + p.field)[0];
+    if (!next) break;
+    pick(next);
+  }
+  // 7. Fill remaining seats with best overall balance
+  bestFirst(notPicked(), overall).forEach(p => pick(p));
+
+  state.players.forEach(p => { p.inXI = picked.has(p.id); });
+  state.battingOrder = []; state.locked = {}; state.batReasons = {}; state.battingGenerated = false; state.bowlingPlan = [];
+  persistAndRender();
+  toast('Auto-selected ' + picked.size + ' players. Review warnings, then generate lineups.', 'ok');
+}
+
+/* ---------- 7. Strategy ---------- */
+const STRAT_DESC = {
+  aggressive: 'Aggressive: highest-rated attacking batsmen at the top, strongest finisher before the tail, best bowlers concentrated in the powerplay and death overs.',
+  balanced: 'Balanced: one anchor opener with a reliable partner, depth spread through the order, overs distributed across the attack with pace–spin variety.',
+  experimental: 'Experimental / Test: controlled randomization. Developing players get promoted and part-timers get overs, while key roles stay covered. Results vary each generation.'
+};
+function setStrategy(s){
+  state.strategy = s;
+  document.querySelectorAll('.strat-btn').forEach(b => b.classList.toggle('active', b.dataset.strat === s));
+  document.getElementById('stratDesc').textContent = STRAT_DESC[s] +
+    (s !== 'experimental' ? ' Result is deterministic: same players + same strategy = same lineup.' : '');
+  document.getElementById('chkFullyRandom').disabled = (s !== 'experimental');
+  saveState();
+}
+
+/* ---------- 8. Batting-order generator ---------- */
+function slotType(pos, n){
+  if (pos <= 2) return 'open';
+  if (pos === 3) return 'top';
+  if (pos <= 5) return 'middle';
+  if (pos <= Math.min(7, n - 2)) return 'finish';
+  return 'tail';
+}
+/* Role-to-slot affinity: roles matter, not just ratings */
+const AFFINITY = {
+  open:   {opener:25, top:12, middle:2,  finisher:-6, 'bat-ar':5,  'bowl-ar':-8, tail:-25},
+  top:    {opener:12, top:22, middle:10, finisher:0,  'bat-ar':8,  'bowl-ar':-5, tail:-20},
+  middle: {opener:2,  top:10, middle:22, finisher:8,  'bat-ar':12, 'bowl-ar':0,  tail:-12},
+  finish: {opener:-5, top:0,  middle:6,  finisher:25, 'bat-ar':12, 'bowl-ar':8,  tail:-5},
+  tail:   {opener:-10,top:-6, middle:0,  finisher:2,  'bat-ar':4,  'bowl-ar':10, tail:15}
+};
+/* Batting suitability: batting rating + role fit + fitness, fielding only minor. Bowling rating deliberately excluded. */
+function batSuit(p, st, strat, pos){
+  let s = p.bat*10 + p.fit*2 + p.field*1 + (AFFINITY[st][p.role] || 0);
+  if (strat === 'aggressive' && (st === 'open' || st === 'top')) s += p.bat*4;           // stack hitters up top
+  if (strat === 'aggressive' && st === 'finish') s += (p.role === 'finisher' ? 10 : 0) + p.field*2;
+  if (strat === 'balanced' && pos === 2) s = p.bat*6 + p.fit*2 + (p.role === 'opener' ? 28 : 0) + (AFFINITY.open[p.role]||0); // reliable (not necessarily star) partner
+  return s;
+}
+function generateBattingOrder(showToast){
+  const xi = xiPlayers();
+  const note = document.getElementById('battingNote');
+  if (xi.length < 2){
+    state.battingOrder = []; state.batReasons = {}; state.battingGenerated = false;
+    renderBatting();
+    if (showToast) toast('Select a playing XI first (tab 3).', 'err');
+    return;
+  }
+  const n = xi.length;
+  const strat = state.strategy;
+  const rnd = Math.random; // experimental only — aggressive/balanced never call it
+  const order = new Array(n).fill(null);
+  const reasons = {};
+
+  // honor locks: position -> player (must still be in XI)
+  Object.keys(state.locked).forEach(k => {
+    const pos = parseInt(k,10);
+    const p = xi.find(x => x.id === state.locked[k]);
+    if (p && pos >= 1 && pos <= n && !order.includes(p)) {
+      order[pos-1] = p;
+      reasons[p.id] = 'Locked in position ' + pos + ' by the captain.';
+    } else { delete state.locked[k]; }
+  });
+
+  let remaining = xi.filter(p => !order.includes(p));
+
+  if (strat === 'experimental' && state.fullyRandom){
+    // Fully random: shuffle every unlocked position
+    for (let i = remaining.length - 1; i > 0; i--){
+      const j = Math.floor(rnd() * (i+1));
+      [remaining[i], remaining[j]] = [remaining[j], remaining[i]];
+    }
+    for (let pos = 1; pos <= n; pos++){
+      if (!order[pos-1]){
+        const p = remaining.shift();
+        order[pos-1] = p;
+        reasons[p.id] = 'Fully Random Experimental Mode — position drawn at random.';
+      }
+    }
+  } else {
+    // Greedy slot-by-slot assignment on batting suitability
+    for (let pos = 1; pos <= n; pos++){
+      if (order[pos-1]) continue;
+      const st = slotType(pos, n);
+      let scored = bestFirst(remaining, p => batSuit(p, st, strat, pos));
+      let choice = scored[0];
+      if (strat === 'experimental'){
+        // controlled randomization: pick from the top few, occasionally promote a developing player
+        const k = Math.min(3, scored.length);
+        choice = scored[Math.floor(rnd()*k)];
+        if (pos >= 3 && pos <= 7 && rnd() < 0.35){
+          const dev = bestFirst(remaining.filter(p => p.bat <= 5), p => p.fit)[0];
+          if (dev) { choice = dev; reasons[dev.id] = 'Developing player promoted to No. ' + pos + ' under Experimental strategy.'; }
+        }
+      }
+      order[pos-1] = choice;
+      remaining = remaining.filter(p => p !== choice);
+      if (!reasons[choice.id]) reasons[choice.id] = batReason(choice, pos, st, strat);
+    }
+    // Left-right opener pairing (skip if either opener is locked)
+    if (n >= 3 && !state.locked['1'] && !state.locked['2'] && order[0].hand === order[1].hand){
+      for (let i = 2; i < Math.min(n, 5); i++){
+        const cand = order[i];
+        if (state.locked[String(i+1)]) continue;
+        if (cand.hand !== order[1].hand && Math.abs(cand.bat - order[1].bat) <= 2 && ['opener','top','bat-ar'].includes(cand.role)){
+          [order[1], order[i]] = [order[i], order[1]];
+          reasons[order[1].id] = 'Promoted to open — creates a left-right opening combination. ' + (reasons[order[1].id]||'');
+          reasons[order[i].id] = 'Moved to No. ' + (i+1) + ' to allow a left-right opening pair.';
+          break;
+        }
+      }
+    }
+    // Aggressive: avoid two weak batsmen (bat <= 4) adjacent in the top 4
+    if (strat === 'aggressive'){
+      for (let i = 0; i < Math.min(3, n-1); i++){
+        if (order[i].bat <= 4 && order[i+1].bat <= 4){
+          const j = order.findIndex((p, idx) => idx > i+1 && p.bat >= 6 && !state.locked[String(idx+1)]);
+          if (j > 0 && !state.locked[String(i+2)]){
+            [order[i+1], order[j]] = [order[j], order[i+1]];
+            reasons[order[i+1].id] = 'Moved up to break a weak batting pair early in the innings.';
+            reasons[order[j].id] = 'Moved lower to maintain batting depth.';
+          }
+        }
+      }
+    }
+  }
+  state.battingOrder = order.map(p => p.id);
+  state.batReasons = reasons;
+  state.battingGenerated = true;
+  saveState();
+  renderBatting();
+  if (showToast) toast('Batting order generated (' + strat + ').', 'ok');
+}
+function batReason(p, pos, st, strat){
+  const o = ROLE_LABEL[p.role].toLowerCase();
+  if (st === 'open') return p.role === 'opener'
+    ? 'Selected as opener due to strong batting rating and opening role.'
+    : 'Opens the batting — best available fit for the powerplay (' + o + ', bat ' + p.bat + ').';
+  if (st === 'top') return 'Placed at No. 3 to face the new ball early and build the innings (bat ' + p.bat + ').';
+  if (st === 'middle') return 'Placed at No. ' + pos + ' to stabilize the middle order (' + o + ').';
+  if (st === 'finish') return p.role === 'finisher'
+    ? 'Selected as finisher due to high batting and fielding ratings.'
+    : 'Placed at No. ' + pos + ' to finish the innings (' + o + ', fitness ' + p.fit + ').';
+  return strat === 'aggressive'
+    ? 'Held back with the tail — batting concentrated at the top under Aggressive strategy.'
+    : 'Placed in the lower order to maintain batting depth (' + o + ').';
+}
+function renderBatting(){
+  const tbody = document.getElementById('battingList');
+  const note = document.getElementById('battingNote');
+  const xi = xiPlayers();
+  // prune ids no longer in the XI; append newly added XI members
+  state.battingOrder = state.battingOrder.filter(id => xi.some(p => p.id === id));
+  xi.forEach(p => { if (!state.battingOrder.includes(p.id)) state.battingOrder.push(p.id); });
+
+  if (!state.battingOrder.length){
+    note.innerHTML = '<div class="warn-box warn-amber">No batting order yet. Pick a playing XI (tab 3), choose a strategy (tab 4), then press <strong>Generate</strong>.</div>';
+    tbody.innerHTML = '';
+    return;
+  }
+  note.innerHTML = xi.length !== 11
+    ? '<div class="warn-box warn-amber">XI currently has ' + xi.length + ' players — the order below covers all of them. Aim for exactly 11.</div>'
+    : (state.battingGenerated ? '' : '<div class="warn-box warn-amber">Roster changed since last generation — regenerate for best placement.</div>');
+
+  tbody.innerHTML = state.battingOrder.map((id, i) => {
+    const p = byId(id); if (!p) return '';
+    const pos = i + 1;
+    const locked = state.locked[String(pos)] === id;
+    return '<tr data-id="' + p.id + '" data-pos="' + pos + '">' +
+      '<td><span class="pos-num">' + pos + '</span></td>' +
+      '<td><strong>' + esc(p.name) + '</strong>' + (p.cap?' <span class="badge cap">C</span>':'') + (p.vc?' <span class="badge vc">VC</span>':'') + (p.wk?' <span class="badge wk">WK</span>':'') + '</td>' +
+      '<td>' + esc(ROLE_LABEL[p.role]) + '</td>' +
+      '<td><strong>' + p.bat + '</strong></td>' +
+      '<td>' + (p.hand === 'L' ? 'Left' : 'Right') + '</td>' +
+      '<td>' + esc(STYLE_LABEL[p.style]) + '</td>' +
+      '<td>' + overall(p).toFixed(1) + '</td>' +
+      '<td class="reason">' + esc(state.batReasons[p.id] || 'Position carried over — regenerate to refresh reasoning.') + '</td>' +
+      '<td><div class="mini-btns">' +
+        '<button class="mini-btn act-up" title="Move up"' + (i===0?' disabled':'') + '>▲</button>' +
+        '<button class="mini-btn act-down" title="Move down"' + (i===state.battingOrder.length-1?' disabled':'') + '>▼</button>' +
+        '<button class="mini-btn act-lock' + (locked?' locked':'') + '" title="' + (locked?'Unlock':'Lock in this position') + '">' + (locked?'🔒':'🔓') + '</button>' +
+      '</div></td></tr>';
+  }).join('');
+}
+function moveBatting(id, dir){
+  const i = state.battingOrder.indexOf(id);
+  const j = i + dir;
+  if (i < 0 || j < 0 || j >= state.battingOrder.length) return;
+  [state.battingOrder[i], state.battingOrder[j]] = [state.battingOrder[j], state.battingOrder[i]];
+  // locks follow the player being moved
+  const posI = String(i+1), posJ = String(j+1);
+  const lockI = state.locked[posI] === id;
+  const lockJ = state.locked[posJ] === state.battingOrder[i];
+  delete state.locked[posI]; delete state.locked[posJ];
+  if (lockI) state.locked[posJ] = id;
+  if (lockJ) state.locked[posI] = state.battingOrder[i];
+  state.batReasons[id] = 'Manually moved by the captain.';
+  saveState(); renderBatting(); renderSheet(); renderAnalysis();
+}
+function toggleLock(id, pos){
+  const key = String(pos);
+  if (state.locked[key] === id) delete state.locked[key];
+  else state.locked[key] = id;
+  saveState(); renderBatting();
+}
+
+/* ---------- 9. Bowling-plan generator ---------- */
+/* Bowling suitability: bowling rating + style/phase fit + preferred phase + fitness + workload.
+   Batting rating deliberately plays no part. */
+function bowlSuit(p, phase, usage, lastId, lastClasses, strat, rnd){
+  let s = p.bowl*10 + p.fit;
+  const cls = bowlClass(p.style);
+  if (phase === 'new')      s += cls==='pace'?20 : cls==='medium'?10 : cls==='spin'?-12 : -8;
+  else if (phase === 'pp')  s += cls==='pace'?14 : cls==='medium'?8  : cls==='spin'?-4  : -6;
+  else if (phase === 'mid') s += cls==='spin'?16 : cls==='medium'?6  : cls==='part'?4   : 0;
+  else { /* death */        s += cls==='pace'?12 : cls==='medium'?6  : cls==='part'?-6  : 0;
+                            s += p.bowl*5 + p.fit*2; }
+  if (p.phase){ if (p.phase === 'flex') s += 4; else if (p.phase === phase) s += 14; }
+  const used = usage[p.id] || 0;
+  s -= used * (10 - p.fit) * 0.8;                                    // fatigue: low fitness tires faster
+  s -= used * (strat==='aggressive'?3 : strat==='balanced'?9 : 7);   // workload spreading
+  if (lastId === p.id) s -= 90;                                      // avoid back-to-back overs
+  if (lastClasses.length >= 2 && lastClasses[0] === cls && lastClasses[1] === cls) s -= 10; // vary the type
+  if (strat === 'aggressive'){ s += p.bowl*4; if (cls === 'part') s -= 25; }
+  if (strat === 'experimental'){ if (cls === 'part' || p.bowl <= 6) s += 12; s += rnd()*25; }
+  return s;
+}
+function bowlReason(p, phase, strat){
+  const cls = bowlClass(p.style);
+  const pref = (p.phase && p.phase === phase) ? ' Matches their preferred phase.' : '';
+  if (phase === 'new') return (cls==='pace'
+    ? 'Best-rated pace bowler selected with the new ball.'
+    : cls==='medium' ? 'Medium-pace option takes the new ball.' : 'Takes the new ball — no suitable pace option was free.') + pref;
+  if (phase === 'pp') return 'Trusted in the powerplay (bowling ' + p.bowl + ', ' + STYLE_LABEL[p.style] + ').' + pref;
+  if (phase === 'mid'){
+    if (cls === 'spin') return 'Spinner introduced during the middle overs.' + pref;
+    if (strat === 'experimental' && (cls === 'part' || p.bowl <= 6)) return 'Development opportunity under Experimental strategy.' + pref;
+    return 'Change of pace through the middle overs.' + pref;
+  }
+  return 'Reliable bowler reserved for the death overs (bowling ' + p.bowl + ', fitness ' + p.fit + ').' + pref;
+}
+function generateBowlingPlan(showToast){
+  const xi = xiPlayers();
+  const bowlers = xi.filter(p => p.style !== 'none');
+  const N = matchOvers();
+  const max = maxOversPerBowler();
+  const strat = state.strategy;
+  const rnd = Math.random;
+  const plan = [];
+  const usage = {};
+  let lastId = null;
+  const lastClasses = [];
+
+  for (let over = 1; over <= N; over++){
+    const phase = phaseOf(over, N);
+    let eligible = bowlers.filter(p => (usage[p.id]||0) < max);
+    let chosen = null, reason = '';
+    if (!eligible.length){
+      plan.push({over, id:null, reason:'No eligible bowler — all bowlers have reached ' + max + ' overs. Add bowling options to the XI.', manual:false});
+      lastId = null; lastClasses.unshift('none'); lastClasses.length = Math.min(lastClasses.length,2);
+      continue;
+    }
+    if (strat === 'experimental' && state.fullyRandom){
+      const pool = eligible.filter(p => p.id !== lastId);
+      const pick = (pool.length ? pool : eligible);
+      chosen = pick[Math.floor(rnd()*pick.length)];
+      reason = 'Fully Random Experimental Mode — bowler drawn at random.';
+    } else {
+      chosen = bestFirst(eligible, p => bowlSuit(p, phase, usage, lastId, lastClasses, strat, rnd))[0];
+      reason = bowlReason(chosen, phase, strat);
+    }
+    usage[chosen.id] = (usage[chosen.id]||0) + 1;
+    plan.push({over, id:chosen.id, reason, manual:false});
+    lastId = chosen.id;
+    lastClasses.unshift(bowlClass(chosen.style)); lastClasses.length = Math.min(lastClasses.length, 2);
+  }
+  state.bowlingPlan = plan;
+  saveState();
+  renderBowling();
+  if (showToast) toast('Bowling plan generated for ' + N + ' overs.', 'ok');
+}
+function bowlingWarningsList(){
+  const xi = xiPlayers();
+  const bowlers = xi.filter(p => p.style !== 'none');
+  const N = matchOvers();
+  const max = maxOversPerBowler();
+  const w = [];
+  const usage = {};
+  let prevId = null;
+  state.bowlingPlan.forEach(o => {
+    if (o.id){ usage[o.id] = (usage[o.id]||0) + 1; }
+  });
+  Object.keys(usage).forEach(id => {
+    const p = byId(id);
+    if (p && usage[id] > max) w.push(p.name + ' is assigned ' + usage[id] + ' overs — the limit is ' + max + '.');
+  });
+  state.bowlingPlan.forEach(o => {
+    if (o.id && o.id === prevId){ const p = byId(o.id); if (p) w.push(p.name + ' bowls consecutive overs (over ' + (o.over-1) + ' and ' + o.over + ').'); }
+    prevId = o.id;
+  });
+  const uncovered = state.bowlingPlan.filter(o => !o.id).length;
+  if (uncovered) w.push(uncovered + ' over(s) have no bowler — the current attack cannot cover all ' + N + ' scheduled overs. Add bowling options to the XI.');
+  if (bowlers.length && bowlers.length * max < N) w.push('Only ' + bowlers.length + ' players can bowl (' + (bowlers.length*max) + ' overs max) — ' + N + ' overs are scheduled.');
+  if (bowlers.filter(isBowlingOption).length < 4) w.push('Fewer than four realistic bowling options in the XI.');
+  if (!bowlers.some(p => ['pace','medium'].includes(bowlClass(p.style)) && p.bowl >= 4)) w.push('No pace or medium-pace option for the opening overs.');
+  if (!bowlers.some(p => p.bowl >= 6 && p.style !== 'part')) w.push('No suitable death-overs bowler (bowling rating 6+).');
+  return w;
+}
+function renderBowling(){
+  const N = matchOvers();
+  const max = maxOversPerBowler();
+  const info = document.getElementById('bowlingInfo');
+  const fmt = state.match.format === 'custom' ? 'Custom' : state.match.format;
+  info.innerHTML = '<strong>' + esc(fmt) + ' — ' + N + ' overs.</strong> Assumed maximum per bowler: <strong>' + max +
+    ' overs</strong> (one-fifth of ' + N + ' scheduled overs, rounded up — standard limited-overs principle).';
+
+  const body = document.getElementById('bowlingPlanBody');
+  const warnEl = document.getElementById('bowlingWarnings');
+  const sumBody = document.getElementById('bowlingSummaryBody');
+  const xi = xiPlayers();
+  const bowlers = xi.filter(p => p.style !== 'none');
+
+  if (!state.bowlingPlan.length){
+    body.innerHTML = '<tr><td colspan="6" class="reason">No plan yet — pick an XI, choose a strategy, then press Generate (tab 4).</td></tr>';
+    warnEl.innerHTML = ''; sumBody.innerHTML = '';
+    return;
+  }
+  let staleNote = '';
+  if (state.bowlingPlan.length !== N)
+    staleNote = '<div class="warn-box warn-amber">The match format changed (' + state.bowlingPlan.length + '-over plan vs ' + N + ' scheduled overs) — regenerate the bowling plan.</div>';
+
+  const opts = id => {
+    let h = '<option value=""' + (!id?' selected':'') + '>— unassigned —</option>';
+    bestFirst(bowlers, p => p.bowl).forEach(p => {
+      h += '<option value="' + p.id + '"' + (p.id===id?' selected':'') + '>' + esc(p.name) + ' (' + p.bowl + ')</option>';
+    });
+    return h;
+  };
+  body.innerHTML = state.bowlingPlan.map(o => {
+    const p = o.id ? byId(o.id) : null;
+    const ph = phaseOf(o.over, N > 0 ? Math.max(N, state.bowlingPlan.length) : state.bowlingPlan.length);
+    return '<tr data-over="' + o.over + '">' +
+      '<td><span class="pos-num">' + o.over + '</span></td>' +
+      '<td><select class="over-sel" aria-label="Bowler for over ' + o.over + '">' + opts(o.id) + '</select></td>' +
+      '<td>' + (p ? esc(STYLE_LABEL[p.style]) : '—') + '</td>' +
+      '<td>' + (p ? '<strong>' + p.bowl + '</strong>' : '—') + '</td>' +
+      '<td><span class="phase-tag ' + PHASE_TAG[ph] + '">' + PHASE_NAME[ph] + '</span></td>' +
+      '<td class="reason">' + esc(o.reason) + '</td></tr>';
+  }).join('');
+
+  // summary per bowler
+  const per = {};
+  state.bowlingPlan.forEach(o => {
+    if (!o.id) return;
+    const ph = phaseOf(o.over, Math.max(N, state.bowlingPlan.length));
+    per[o.id] = per[o.id] || {total:0, new:0, pp:0, mid:0, death:0};
+    per[o.id].total++; per[o.id][ph]++;
+  });
+  sumBody.innerHTML = Object.keys(per).map(id => {
+    const p = byId(id); if (!p) return '';
+    const s = per[id];
+    const over = s.total > max ? ' style="color:var(--red);font-weight:800"' : '';
+    return '<tr><td><strong>' + esc(p.name) + '</strong></td><td' + over + '>' + s.total + ' / ' + max + '</td>' +
+      '<td>' + esc(STYLE_LABEL[p.style]) + '</td><td>' + p.bowl + '</td>' +
+      '<td>' + s.new + '</td><td>' + s.pp + '</td><td>' + s.mid + '</td><td>' + s.death + '</td></tr>';
+  }).join('') || '<tr><td colspan="8" class="reason">No overs assigned.</td></tr>';
+
+  const w = bowlingWarningsList();
+  warnEl.innerHTML = staleNote + (w.length
+    ? '<div class="warn-box warn-red"><strong>Bowling plan needs attention:</strong><ul>' + w.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul></div>'
+    : '<div class="warn-box warn-green">✔ Plan is legal: over limits respected, no back-to-back overs, all overs covered.</div>');
+}
+
+/* ---------- 10. Team analysis dashboard ---------- */
+function analysisGroup(){
+  const xi = xiPlayers();
+  if (xi.length) return {list: xi, label: 'Playing XI (' + xi.length + ' players)'};
+  return {list: availablePlayers(), label: 'All available players (no XI selected yet)'};
+}
+function avg(list, fn){ return list.length ? list.reduce((a,p) => a + fn(p), 0) / list.length : 0; }
+function topAvg(list, fn, k){
+  const vals = list.map(fn).sort((a,b) => b-a).slice(0, k);
+  return vals.length ? vals.reduce((a,b) => a+b, 0) / vals.length : 0;
+}
+function computeBalance(list){
+  const depth = topAvg(list, p => p.bat, 8);
+  let coverage = topAvg(list.filter(p => p.style !== 'none'), p => p.bowl, 5);
+  if (list.some(p => bowlClass(p.style) === 'pace' && p.bowl >= 4)) coverage += 0.4;
+  if (list.some(p => bowlClass(p.style) === 'spin' && p.bowl >= 4)) coverage += 0.4;
+  coverage = Math.min(10, coverage);
+  const fielding = avg(list, p => p.field);
+  const fitness = avg(list, p => p.fit);
+  const overallBal = (depth + coverage + fielding + fitness) / 4;
+  return {depth, coverage, fielding, fitness, overallBal};
+}
+function renderAnalysis(){
+  const {list, label} = analysisGroup();
+  const cardsEl = document.getElementById('analysisCards');
+  const barsEl = document.getElementById('analysisBars');
+  const compEl = document.getElementById('analysisComposition');
+  if (!list.length){
+    cardsEl.innerHTML = '<div class="card">Add players to see the team analysis.</div>';
+    barsEl.innerHTML = ''; compEl.innerHTML = '';
+    document.getElementById('whyLineup').innerHTML = '<p>Add players and generate a lineup to see the reasoning here.</p>';
+    return;
+  }
+  const stats = [
+    ['Avg batting', avg(list, p=>p.bat)], ['Avg bowling', avg(list, p=>p.bowl)],
+    ['Avg fielding', avg(list, p=>p.field)], ['Avg fitness', avg(list, p=>p.fit)]
+  ];
+  cardsEl.innerHTML = stats.map(s =>
+    '<div class="stat-card"><div class="st-v">' + s[1].toFixed(1) + '</div><div class="st-l">' + s[0] + '</div></div>').join('');
+
+  const b = computeBalance(list);
+  const bars = [
+    ['Batting depth (top-8 batting avg)', b.depth],
+    ['Bowling coverage (top-5 bowling + variety)', b.coverage],
+    ['Fielding strength', b.fielding],
+    ['Fitness', b.fitness],
+    ['Overall team balance', b.overallBal]
+  ];
+  barsEl.innerHTML = '<h2 style="font-size:1rem;margin-bottom:12px;color:var(--gold)">Balance scores — ' + esc(label) + '</h2>' +
+    bars.map(x => '<div class="bar-row"><div class="bar-l"><span>' + x[0] + '</span><b>' + x[1].toFixed(1) + ' / 10</b></div>' +
+    '<div class="bar-track"><div class="bar-fill" style="width:' + Math.min(100, x[1]*10).toFixed(0) + '%"></div></div></div>').join('');
+
+  const comp = [
+    ['Specialist batsmen', list.filter(p => ['opener','top','middle','finisher'].includes(p.role)).length],
+    ['All-rounders', list.filter(p => ['bat-ar','bowl-ar'].includes(p.role)).length],
+    ['Bowling options (rating 4+)', list.filter(isBowlingOption).length],
+    ['Pace bowlers', list.filter(p => bowlClass(p.style) === 'pace').length],
+    ['Medium bowlers', list.filter(p => bowlClass(p.style) === 'medium').length],
+    ['Spinners', list.filter(p => bowlClass(p.style) === 'spin').length],
+    ['Left-handed batsmen', list.filter(p => p.hand === 'L').length],
+    ['Wicketkeepers', list.filter(p => p.wk).length]
+  ];
+  compEl.innerHTML = '<h2 style="font-size:1rem;margin-bottom:12px;color:var(--gold)">Squad composition</h2>' +
+    comp.map(c => '<div class="bar-row"><div class="bar-l"><span>' + c[0] + '</span><b>' + c[1] + '</b></div>' +
+    '<div class="bar-track"><div class="bar-fill" style="width:' + Math.min(100, c[1]*(100/11)).toFixed(0) + '%"></div></div></div>').join('');
+
+  renderWhy(list, b);
+}
+function renderWhy(list, b){
+  const el = document.getElementById('whyLineup');
+  const xi = xiPlayers();
+  if (!state.battingGenerated || !xi.length){
+    el.innerHTML = '<p>Generate a lineup (tab 4) and the full reasoning will appear here.</p>';
+    return;
+  }
+  const strat = state.strategy;
+  const parts = [];
+  const stratTxt = {
+    aggressive: 'The <strong>Aggressive</strong> strategy front-loaded the batting: the highest batting ratings were pushed into the top four, the strongest finisher was held for the final overs before the tail, and bowling overs were concentrated among the best-rated bowlers, keeping a reliable option for the death.',
+    balanced: 'The <strong>Balanced</strong> strategy paired the best opener with a reliable partner rather than two stars, spread capable batsmen through the order for depth, and distributed bowling overs across the attack while alternating pace and spin.',
+    experimental: 'The <strong>Experimental / Test</strong> strategy used controlled randomization: developing players were promoted where safe, part-time bowlers received overs, and key roles (opening bowlers, death overs) stayed covered.' 
+  };
+  parts.push('<p>' + (stratTxt[strat] || '') + '</p>');
+  const openers = state.battingOrder.slice(0,2).map(id => byId(id)).filter(Boolean);
+  if (openers.length === 2){
+    const lr = openers[0].hand !== openers[1].hand;
+    parts.push('<p><strong>Batting roles:</strong> ' + esc(openers[0].name) + ' and ' + esc(openers[1].name) +
+      ' open' + (lr ? ' as a left-right pair, making it harder for bowlers to settle.' : '. A left-right opening pair was not reasonably possible with this XI.') +
+      ' Players with opening/top-order roles were weighted toward positions 1–3, middle-order roles toward 4–5, and finisher/all-rounder roles toward 6–7. Bowling ratings were deliberately ignored when ordering the batting.</p>');
+  }
+  const bowlers = xi.filter(p => p.style !== 'none');
+  const paceN = bowlers.filter(p => ['pace','medium'].includes(bowlClass(p.style))).length;
+  const spinN = bowlers.filter(p => bowlClass(p.style) === 'spin').length;
+  parts.push('<p><strong>Bowling types:</strong> ' + paceN + ' pace/medium and ' + spinN + ' spin option(s). ' +
+    'Pace was preferred for the new ball and powerplay, spin and change bowlers through the middle, and the highest-rated, fittest bowlers were reserved for the death. Batting ratings played no part in bowling choices.</p>');
+  const weaknesses = validateXI(xi, availablePlayers()).concat(bowlingWarningsList());
+  parts.push(weaknesses.length
+    ? '<p><strong>Weaknesses to note:</strong></p><ul>' + [...new Set(weaknesses)].map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>'
+    : '<p><strong>No structural weaknesses detected</strong> — keeper covered, four-plus bowling options, pace and spin both available.</p>');
+  parts.push('<p style="font-style:italic;color:var(--muted)">Lineup recommendations use general limited-overs and T20 strategy principles inspired by professional cricket. They are not based on live IPL data.</p>');
+  el.innerHTML = parts.join('');
+}
+
+/* ---------- 11. Match-day sheet & print ---------- */
+function fmtDate(d){
+  if (!d) return '—';
+  const parts = d.split('-');
+  if (parts.length !== 3) return esc(d);
+  const dt = new Date(parseInt(parts[0],10), parseInt(parts[1],10)-1, parseInt(parts[2],10));
+  return dt.toLocaleDateString(undefined, {weekday:'short', year:'numeric', month:'short', day:'numeric'});
+}
+function renderSheet(){
+  const el = document.getElementById('matchSheet');
+  if (!el) return;
+  const m = state.match;
+  const xi = xiPlayers();
+  const bench = availablePlayers().filter(p => !p.inXI);
+  const cap = state.players.find(p => p.cap);
+  const vc = state.players.find(p => p.vc);
+  const wk = xi.find(p => p.wk) || state.players.find(p => p.wk);
+  const N = matchOvers();
+  const fmt = m.format === 'custom' ? ('Custom — ' + N + ' overs') : (m.format + ' (' + N + ' overs)');
+  const logo = localStorage.getItem(LS_LOGO) || defaultLogo();
+  const stratName = {aggressive:'Aggressive', balanced:'Balanced', experimental:'Experimental / Test'}[state.strategy];
+  const b = computeBalance(xi.length ? xi : availablePlayers());
+
+  let h = '<div class="sh-head"><img src="' + logo + '" alt="Stallions logo">' +
+    '<div><h3>Stallions Cricket Club</h3><div class="sh-sub">Captain’s Match Sheet — ' + esc(stratName) + ' strategy</div></div></div>';
+
+  h += '<div class="sh-grid">' +
+    '<div><b>Opponent</b>' + (m.opponent ? esc(m.opponent) : '—') + '</div>' +
+    '<div><b>Date</b>' + fmtDate(m.date) + '</div>' +
+    '<div><b>Venue</b>' + (m.venue ? esc(m.venue) : '—') + '</div>' +
+    '<div><b>Format</b>' + esc(fmt) + '</div>' +
+    '<div><b>Toss</b>' + (m.toss ? esc(m.toss) : '—') + '</div>' +
+    '<div><b>Decision</b>' + (m.decision ? esc(m.decision) : '—') + '</div>' +
+    '<div><b>Captain</b>' + (cap ? esc(cap.name) : '—') + '</div>' +
+    '<div><b>Vice-captain</b>' + (vc ? esc(vc.name) : '—') + '</div>' +
+    '<div><b>Wicketkeeper</b>' + (wk ? esc(wk.name) : '—') + '</div>' +
+    '<div><b>Max overs/bowler</b>' + maxOversPerBowler() + '</div>' +
+  '</div>';
+
+  // Playing XI + batting order
+  h += '<h4>Playing XI — Batting Order</h4>';
+  if (state.battingOrder.length){
+    h += '<table><tr><th>#</th><th>Player</th><th>Role</th><th>Hand</th><th>Bowling</th></tr>' +
+      state.battingOrder.map((id,i) => {
+        const p = byId(id); if (!p) return '';
+        let tags = '';
+        if (p.cap) tags += ' (C)'; if (p.vc) tags += ' (VC)'; if (p.wk) tags += ' (WK)';
+        return '<tr><td>' + (i+1) + '</td><td><strong>' + esc(p.name) + tags + '</strong></td>' +
+          '<td>' + esc(ROLE_LABEL[p.role]) + '</td><td>' + (p.hand==='L'?'Left':'Right') + '</td><td>' + esc(STYLE_LABEL[p.style]) + '</td></tr>';
+      }).join('') + '</table>';
+  } else if (xi.length){
+    h += '<ul>' + bestFirst(xi, overall).map(p => '<li>' + esc(p.name) + (p.wk?' (WK)':'') + (p.cap?' (C)':'') + (p.vc?' (VC)':'') + '</li>').join('') + '</ul>' +
+      '<p style="font-size:.8rem;color:#888">No batting order generated yet.</p>';
+  } else h += '<p style="font-size:.85rem;color:#888">No playing XI selected yet.</p>';
+
+  // Bowling plan
+  h += '<h4>Bowling Plan</h4>';
+  if (state.bowlingPlan.length){
+    h += '<table><tr><th>Over</th><th>Bowler</th><th>Style</th><th>Phase</th></tr>' +
+      state.bowlingPlan.map(o => {
+        const p = o.id ? byId(o.id) : null;
+        const ph = PHASE_NAME[phaseOf(o.over, Math.max(N, state.bowlingPlan.length))];
+        return '<tr><td>' + o.over + '</td><td><strong>' + (p ? esc(p.name) : 'UNASSIGNED') + '</strong></td>' +
+          '<td>' + (p ? esc(STYLE_LABEL[p.style]) : '—') + '</td><td>' + ph + '</td></tr>';
+      }).join('') + '</table>';
+  } else h += '<p style="font-size:.85rem;color:#888">No bowling plan generated yet.</p>';
+
+  // Bench
+  h += '<h4>Bench / Reserves</h4>';
+  h += bench.length
+    ? '<ul>' + bestFirst(bench, overall).map(p => '<li>' + esc(p.name) + ' — ' + esc(ROLE_LABEL[p.role]) + ', overall ' + overall(p).toFixed(1) + '</li>').join('') + '</ul>'
+    : '<p style="font-size:.85rem;color:#888">No reserves.</p>';
+
+  // Balance summary
+  h += '<h4>Team Balance Summary</h4><table><tr><th>Batting depth</th><th>Bowling coverage</th><th>Fielding</th><th>Fitness</th><th>Overall balance</th></tr>' +
+    '<tr><td>' + b.depth.toFixed(1) + ' / 10</td><td>' + b.coverage.toFixed(1) + ' / 10</td><td>' + b.fielding.toFixed(1) +
+    ' / 10</td><td>' + b.fitness.toFixed(1) + ' / 10</td><td><strong>' + b.overallBal.toFixed(1) + ' / 10</strong></td></tr></table>';
+
+  // Notes
+  h += '<h4>Captain’s Notes</h4><div class="sh-notes">' + (state.notes ? esc(state.notes) : 'No notes recorded.') + '</div>';
+  h += '<div class="disclaim">Generated ' + new Date().toLocaleDateString() +
+    ' — Stallions Cricket Club Team Selector. Lineup recommendations use general limited-overs and T20 strategy principles inspired by professional cricket. They are not based on live IPL data.</div>';
+  el.innerHTML = h;
+}
+
+/* ---------- 12. Event wiring & init ---------- */
+function persistAndRender(){ saveState(); renderAll(); }
+function renderAll(){
+  renderPlayers(); renderXI(); renderBatting(); renderBowling(); renderAnalysis(); renderSheet(); updateOversInfo();
+}
+function updateOversInfo(){
+  const N = matchOvers();
+  document.getElementById('oversInfo').innerHTML =
+    'Scheduled innings: <strong>' + N + ' overs</strong> · maximum <strong>' + maxOversPerBowler() +
+    ' overs per bowler</strong> (one-fifth of the innings, rounded up). Details save automatically.';
+  document.getElementById('customOversWrap').style.display = state.match.format === 'custom' ? '' : 'none';
+}
+function switchTab(name){
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function bindEvents(){
+  // Tabs
+  document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+
+  // Match details
+  const bindMatch = (id, key, after) => document.getElementById(id).addEventListener('change', e => {
+    state.match[key] = e.target.value; saveState(); updateOversInfo(); renderBowling(); renderSheet(); if (after) after();
+  });
+  bindMatch('mOpponent','opponent'); bindMatch('mDate','date'); bindMatch('mVenue','venue');
+  bindMatch('mFormat','format'); bindMatch('mToss','toss'); bindMatch('mDecision','decision');
+  document.getElementById('mCustomOvers').addEventListener('change', e => {
+    let v = parseInt(e.target.value,10);
+    if (isNaN(v) || v < 1) v = 1; if (v > 50) v = 50;
+    e.target.value = v; state.match.customOvers = v;
+    saveState(); updateOversInfo(); renderBowling(); renderSheet();
+  });
+
+  // Logo
+  document.getElementById('btnUploadLogo').addEventListener('click', () => document.getElementById('logoInput').click());
+  document.getElementById('logoInput').addEventListener('change', e => { if (e.target.files[0]) handleLogoUpload(e.target.files[0]); e.target.value=''; });
+  document.getElementById('btnResetLogo').addEventListener('click', () => { localStorage.removeItem(LS_LOGO); applyLogo(); toast('Default emblem restored.', 'ok'); });
+
+  // Roster toolbar
+  document.getElementById('btnAddPlayer').addEventListener('click', () => openPlayerModal(null));
+  document.getElementById('btnClearAll').addEventListener('click', clearAllPlayers);
+  document.getElementById('btnSaveTeam').addEventListener('click', saveSnapshot);
+  document.getElementById('btnLoadTeam').addEventListener('click', loadSnapshot);
+  document.getElementById('btnExport').addEventListener('click', exportTeam);
+  document.getElementById('btnImport').addEventListener('click', () => document.getElementById('importFile').click());
+  document.getElementById('importFile').addEventListener('change', e => { if (e.target.files[0]) importTeam(e.target.files[0]); e.target.value=''; });
+  document.getElementById('btnResetDemo').addEventListener('click', resetDemo);
+  document.getElementById('btnDeleteSample').addEventListener('click', startBlank);
+
+  // Player card actions (delegated)
+  document.getElementById('playerList').addEventListener('click', e => {
+    const card = e.target.closest('.pcard'); if (!card) return;
+    const id = card.dataset.id;
+    if (e.target.closest('.act-edit')) openPlayerModal(byId(id));
+    else if (e.target.closest('.act-del')) deletePlayer(id);
+  });
+  document.getElementById('playerList').addEventListener('change', e => {
+    if (!e.target.classList.contains('act-avail')) return;
+    const card = e.target.closest('.pcard'); if (!card) return;
+    const p = byId(card.dataset.id); if (!p) return;
+    p.available = e.target.checked;
+    if (!p.available) p.inXI = false;
+    persistAndRender();
+  });
+
+  // Modal
+  document.getElementById('btnSavePlayer').addEventListener('click', savePlayerFromModal);
+  document.getElementById('btnCancelPlayer').addEventListener('click', closePlayerModal);
+  document.getElementById('playerModal').addEventListener('click', e => { if (e.target === modal()) closePlayerModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closePlayerModal(); });
+  [['rBat','vBat'],['rBowl','vBowl'],['rField','vField'],['rFit','vFit']].forEach(([r,v]) => {
+    document.getElementById(r).addEventListener('input', e => document.getElementById(v).textContent = e.target.value);
+  });
+  document.querySelectorAll('.step-btn').forEach(b => b.addEventListener('click', () => {
+    const input = document.getElementById(b.dataset.target);
+    const val = clampRating(parseInt(input.value,10) + parseInt(b.dataset.step,10));
+    input.value = val;
+    input.dispatchEvent(new Event('input'));
+  }));
+
+  // XI panel
+  document.getElementById('btnAutoXI').addEventListener('click', autoSelectXI);
+  document.getElementById('btnClearXI').addEventListener('click', () => {
+    state.players.forEach(p => p.inXI = false);
+    state.battingOrder = []; state.locked = {}; state.batReasons = {}; state.battingGenerated = false; state.bowlingPlan = [];
+    persistAndRender(); toast('XI selection cleared.', 'ok');
+  });
+  document.getElementById('xiList').addEventListener('change', e => {
+    if (!e.target.classList.contains('act-xi')) return;
+    const card = e.target.closest('.pcard'); if (!card) return;
+    const p = byId(card.dataset.id); if (!p) return;
+    p.inXI = e.target.checked;
+    state.battingGenerated = false;
+    persistAndRender();
+  });
+
+  // Strategy
+  document.querySelectorAll('.strat-btn').forEach(b => b.addEventListener('click', () => setStrategy(b.dataset.strat)));
+  document.getElementById('chkFullyRandom').addEventListener('change', e => { state.fullyRandom = e.target.checked; saveState(); });
+  document.getElementById('btnGenerate').addEventListener('click', () => {
+    const xi = xiPlayers();
+    if (!xi.length){ toast('Select a playing XI first (tab 3).', 'err'); switchTab('xi'); return; }
+    generateBattingOrder(false);
+    generateBowlingPlan(false);
+    renderAnalysis(); renderSheet();
+    toast('Lineups generated with the ' + state.strategy + ' strategy.', 'ok');
+    switchTab('batting');
+  });
+
+  // Batting order controls (delegated)
+  document.getElementById('btnRegenBatting').addEventListener('click', () => { generateBattingOrder(true); renderAnalysis(); renderSheet(); });
+  document.getElementById('battingList').addEventListener('click', e => {
+    const row = e.target.closest('tr'); if (!row) return;
+    const id = row.dataset.id, pos = parseInt(row.dataset.pos,10);
+    if (e.target.closest('.act-up')) moveBatting(id, -1);
+    else if (e.target.closest('.act-down')) moveBatting(id, 1);
+    else if (e.target.closest('.act-lock')) toggleLock(id, pos);
+  });
+
+  // Bowling controls
+  document.getElementById('btnRegenBowling').addEventListener('click', () => { generateBowlingPlan(true); renderAnalysis(); renderSheet(); });
+  document.getElementById('bowlingPlanBody').addEventListener('change', e => {
+    if (!e.target.classList.contains('over-sel')) return;
+    const row = e.target.closest('tr'); if (!row) return;
+    const over = parseInt(row.dataset.over,10);
+    const entry = state.bowlingPlan.find(o => o.over === over); if (!entry) return;
+    entry.id = e.target.value || null;
+    entry.manual = true;
+    entry.reason = entry.id ? 'Captain’s manual choice.' : 'Left unassigned by the captain.';
+    saveState(); renderBowling(); renderSheet();
+  });
+
+  // Notes + print
+  document.getElementById('captainNotes').addEventListener('input', e => { state.notes = e.target.value; saveState(); });
+  document.getElementById('captainNotes').addEventListener('change', renderSheet);
+  document.getElementById('btnPrint').addEventListener('click', () => { renderSheet(); window.print(); });
+  window.addEventListener('beforeprint', renderSheet);
+}
+function initFormFields(){
+  const m = state.match;
+  document.getElementById('mOpponent').value = m.opponent || '';
+  document.getElementById('mDate').value = m.date || '';
+  document.getElementById('mVenue').value = m.venue || '';
+  document.getElementById('mFormat').value = m.format || 'T20';
+  document.getElementById('mCustomOvers').value = m.customOvers || 20;
+  document.getElementById('mToss').value = m.toss || '';
+  document.getElementById('mDecision').value = m.decision || '';
+  document.getElementById('captainNotes').value = state.notes || '';
+  document.getElementById('chkFullyRandom').checked = state.fullyRandom === true;
+}
+function init(){
+  if (!loadState()){
+    state = defaultState();
+    state.players = samplePlayers();
+    saveState();
+  }
+  initFormFields();
+  setStrategy(state.strategy);
+  bindEvents();
+  applyLogo();
+  renderAll();
+}
+init();
+</script>
+</body>
+</html>
